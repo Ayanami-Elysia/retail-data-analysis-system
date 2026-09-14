@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}用户行为偏好分析{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center" style="font-weight: 300; color: #e0e0e0;">用户行为偏好与退款场景分析</h2>
+            <p class="text-center" style="color: rgba(255,255,255,0.65); margin-top: 10px;">
+                浏览偏好 / 购物偏好 / 加购(收藏意向)偏好 / 退款高发维度
+            </p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">浏览偏好（Top 类目）</h5>
+                    <div id="browse-category-chart" style="width: 100%; height: 360px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">购物偏好（Top 类目）</h5>
+                    <div id="purchase-category-chart" style="width: 100%; height: 360px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">收藏偏好（以“加购 cart”作为收藏意向代理，Top 商品）</h5>
+                    <div id="favorite-products-chart" style="width: 100%; height: 360px;"></div>
+                    <div id="favorite-note" style="color: rgba(255,255,255,0.65); font-size: 12px; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">什么情况下更容易退款（退款率 Top 维度）</h5>
+                    <div id="refund-rate-chart" style="width: 100%; height: 360px;"></div>
+                    <div id="refund-definition" style="color: rgba(255,255,255,0.65); font-size: 12px; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchBrowsePreference();
+        fetchPurchasePreference();
+        fetchFavoritePreference();
+        fetchRefundPatterns();
+    });
+
+    function toBarOption(title, items) {
+        const names = (items || []).map(x => x.name);
+        const values = (items || []).map(x => x.value);
+        return {
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'value', axisLabel: { color: '#ddd' }, splitLine: { lineStyle: { color: '#484848' } } },
+            yAxis: { type: 'category', data: names.reverse(), axisLabel: { color: '#ddd' } },
+            series: [{
+                name: title,
+                type: 'bar',
+                data: values.reverse(),
+                itemStyle: { color: '#4cc9f0' }
+            }]
+        };
+    }
+
+    function fetchBrowsePreference() {
+        fetch('/api/behavior_analysis/browse_preference?limit=10')
+            .then(r => r.json())
+            .then(data => {
+                const chart = echarts.init(document.getElementById('browse-category-chart'));
+                chart.setOption(toBarOption('浏览次数', data.top_categories));
+                window.addEventListener('resize', () => chart.resize());
+            })
+            .catch(err => console.error('browse_preference error', err));
+    }
+
+    function fetchPurchasePreference() {
+        fetch('/api/behavior_analysis/purchase_preference?limit=10')
+            .then(r => r.json())
+            .then(data => {
+                const chart = echarts.init(document.getElementById('purchase-category-chart'));
+                chart.setOption(toBarOption('购买行为次数', data.top_categories));
+                window.addEventListener('resize', () => chart.resize());
+            })
+            .catch(err => console.error('purchase_preference error', err));
+    }
+
+    function fetchFavoritePreference() {
+        fetch('/api/behavior_analysis/favorite_preference?limit=10')
+            .then(r => r.json())
+            .then(data => {
+                const chart = echarts.init(document.getElementById('favorite-products-chart'));
+                chart.setOption(toBarOption('加购次数', data.top_products));
+                document.getElementById('favorite-note').innerText = data.note || '';
+                window.addEventListener('resize', () => chart.resize());
+            })
+            .catch(err => console.error('favorite_preference error', err));
+    }
+
+    function pickTopRefundDimension(refundData) {
+        const dims = [
+            { key: 'by_payment_method', title: '按支付方式退款率' },
+            { key: 'by_delivery_method', title: '按配送方式退款率' },
+            { key: 'by_order_source', title: '按订单来源退款率' },
+            { key: 'by_channel', title: '按渠道退款率' },
+            { key: 'by_amount_bucket', title: '按金额区间退款率' },
+        ];
+
+        let best = null;
+        dims.forEach(d => {
+            const arr = refundData[d.key] || [];
+            if (!arr.length) return;
+            const maxRate = Math.max(...arr.map(x => Number(x.rate || 0)));
+            if (!best || maxRate > best.maxRate) best = { ...d, maxRate };
+        });
+        return best || dims[0];
+    }
+
+    function toRefundRateBarOption(title, rows) {
+        const names = (rows || []).map(x => x.name);
+        const rates = (rows || []).map(x => Number(x.rate || 0));
+        const totals = (rows || []).map(x => Number(x.total || 0));
+        const refunded = (rows || []).map(x => Number(x.refunded || 0));
+
+        return {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                formatter: function(params) {
+                    const idx = params[0].dataIndex;
+                    return `${names[idx]}<br/>退款率：${rates[idx]}%<br/>退款单：${refunded[idx]}<br/>总单：${totals[idx]}`;
+                }
+            },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'value', axisLabel: { color: '#ddd', formatter: '{value}%' }, splitLine: { lineStyle: { color: '#484848' } } },
+            yAxis: { type: 'category', data: names.reverse(), axisLabel: { color: '#ddd' } },
+            series: [{
+                name: title,
+                type: 'bar',
+                data: rates.reverse(),
+                itemStyle: { color: '#f72585' }
+            }]
+        };
+    }
+
+    function fetchRefundPatterns() {
+        fetch('/api/behavior_analysis/refund_patterns')
+            .then(r => r.json())
+            .then(data => {
+                const dim = pickTopRefundDimension(data);
+                const rows = data[dim.key] || [];
+                const chart = echarts.init(document.getElementById('refund-rate-chart'));
+                chart.setOption(toRefundRateBarOption(dim.title, rows));
+                document.getElementById('refund-definition').innerText = data.refund_definition || '';
+                window.addEventListener('resize', () => chart.resize());
+            })
+            .catch(err => console.error('refund_patterns error', err));
+    }
+</script>
+{% endblock %}
+

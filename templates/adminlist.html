@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理{% endblock %}
+
+{% block css %}
+{{ super() }}
+<link href="../static/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css">
+<style>
+.content-wrapper {
+    margin-left: 0px;  /* 调整左边距，避免被菜单挡住 */
+    padding: 20px;
+    margin-top: 70px;    /* 添加顶部边距，避免被导航栏遮挡 */
+}
+.search-box {
+    margin-bottom: 20px;
+}
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.table-title {
+    margin: 0;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* 搜索框样式 */
+.search-box .form-control {
+    background: rgba(20, 20, 20, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+.search-box .form-control:focus {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.3) !important;
+}
+
+.search-box .btn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+.search-box .btn-primary {
+    background: linear-gradient(45deg, #ff4d4d, #f9654f) !important;
+    border: none !important;
+}
+
+.search-box .btn-secondary {
+    background: rgba(40, 40, 40, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 表格优化 */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    border-bottom: none !important;
+    background: rgba(20, 20, 20, 0.4) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 600 !important;
+    padding: 15px !important;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    background: rgba(30, 30, 30, 0.5) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 8px !important;
+    margin-bottom: 5px !important;
+}
+
+.table tbody tr:hover {
+    background: rgba(40, 40, 40, 0.7) !important;
+    transform: translateY(-2px) !important;
+}
+
+.table td {
+    border-top: none !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    vertical-align: middle !important;
+}
+
+/* 按钮样式优化 */
+.btn-info {
+    background: rgba(80, 210, 250, 0.2) !important;
+    border: 1px solid rgba(80, 210, 250, 0.3) !important;
+    color: #50d2fa !important;
+}
+
+.btn-info:hover {
+    background: rgba(80, 210, 250, 0.3) !important;
+    box-shadow: 0 5px 15px rgba(80, 210, 250, 0.2) !important;
+}
+
+.btn-danger {
+    background: rgba(255, 77, 77, 0.2) !important;
+    border: 1px solid rgba(255, 77, 77, 0.3) !important;
+    color: #ff4d4d !important;
+}
+
+.btn-danger:hover {
+    background: rgba(255, 77, 77, 0.3) !important;
+    box-shadow: 0 5px 15px rgba(255, 77, 77, 0.2) !important;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, #ff4d4d, #f9654f) !important;
+    border: none !important;
+    box-shadow: 0 5px 15px rgba(255, 77, 77, 0.2) !important;
+}
+
+.btn-success:hover {
+    box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 模态框样式 */
+.modal-content {
+    background: rgba(30, 30, 30, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    color: #fff !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-title {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+.close {
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-shadow: none !important;
+}
+
+.close:hover {
+    color: #fff !important;
+}
+
+.modal label {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500 !important;
+}
+
+/* 表格优化 - 修改选中效果 */
+.table tbody tr {
+    background: rgba(30, 30, 30, 0.5) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 8px !important;
+    margin-bottom: 5px !important;
+}
+
+.table tbody tr:hover {
+    background: rgba(40, 40, 40, 0.7) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 添加以下代码来修复表格行选中效果 */
+.table tbody tr.active,
+.table tbody tr.selected {
+    background: rgba(255, 77, 77, 0.1) !important;
+    color: var(--text-color) !important;
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(45, 45, 45, 0.6) !important;
+    color: white !important;
+}
+
+.table-hover tbody tr:active {
+    background: rgba(255, 77, 77, 0.15) !important;
+}
+
+/* 确保选中的单元格保持可见 */
+.table .selected td,
+.table .selected th,
+.table td.selected,
+.table th.selected {
+    background-color: rgba(255, 77, 77, 0.15) !important;
+    color: white !important;
+}
+
+/* 高亮选中的行但不使用黑色背景 */
+.table-striped tbody tr:nth-of-type(odd).selected {
+    background-color: rgba(255, 77, 77, 0.1) !important;
+}
+
+.table-striped tbody tr:nth-of-type(even).selected {
+    background-color: rgba(255, 77, 77, 0.15) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <!-- 搜索和标题区域 -->
+                    <div class="table-header">
+                        <h4 class="table-title">用户列表</h4>
+                        <div class="search-box">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchUsername" placeholder="输入用户名搜索">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" onclick="searchUsers()">
+                                        <i class="fa fa-search"></i> 搜索
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="resetSearch()">
+                                        <i class="fa fa-refresh"></i> 重置
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="addUser()">
+                            <i class="fa fa-plus"></i> 添加用户
+                        </button>
+                    </div>
+
+                    <!-- 表格 -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>昵称</th>
+                                    <th>性别</th>
+                                    <th>年龄</th>
+                                    <th>电话</th>
+                                    <th>邮箱</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- 数据将通过 JS 动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑用户模态框 -->
+<div class="modal fade" id="userModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">添加用户</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" class="form-control" id="password">
+                    </div>
+                    <div class="form-group">
+                        <label>昵称</label>
+                        <input type="text" class="form-control" id="nickname">
+                    </div>
+                    <div class="form-group">
+                        <label>性别</label>
+                        <select class="form-control" id="sex">
+                            <option value="">请选择</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>年龄</label>
+                        <input type="number" class="form-control" id="age">
+                    </div>
+                    <div class="form-group">
+                        <label>电话</label>
+                        <input type="tel" class="form-control" id="phone">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script src="../static/js/jquery.dataTables.min.js"></script>
+<script src="../static/js/dataTables.bootstrap4.min.js"></script>
+<script>
+let currentPage = 1;
+const pageSize = 20;
+
+// 渲染用户表格
+function renderUserTable(users) {
+    const tbody = $('#userTableBody');
+    tbody.empty();
+    
+    users.forEach(user => {
+        tbody.append(`
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.nickname || '-'}</td>
+                <td>${user.sex || '-'}</td>
+                <td>${user.age || '-'}</td>
+                <td>${user.phone || '-'}</td>
+                <td>${user.email || '-'}</td>
+                <td>
+                    <button class="btn btn-info btn-sm" onclick="editUser(${user.id})">
+                        <i class="fa fa-edit"></i> 编辑
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">
+                        <i class="fa fa-trash"></i> 删除
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+// 添加用户
+function addUser() {
+    $('#modalTitle').text('添加用户');
+    $('#userForm')[0].reset();
+    $('#userId').val('');
+    $('#userModal').modal('show');
+}
+
+// 编辑用户
+function editUser(id) {
+    $('#modalTitle').text('编辑用户');
+    $.ajax({
+        url: `/user/get/${id}`,
+        type: 'GET',
+        success: function(response) {
+            if (response.code === 200) {
+                const user = response.data;
+                $('#userId').val(user.id);
+                $('#username').val(user.username);
+                $('#nickname').val(user.nickname);
+                $('#sex').val(user.sex);
+                $('#age').val(user.age);
+                $('#phone').val(user.phone);
+                $('#email').val(user.email);
+                $('#userModal').modal('show');
+            } else {
+                alert('获取用户信息失败：' + response.msg);
+            }
+        }
+    });
+}
+
+// 保存用户
+function saveUser() {
+    const userId = $('#userId').val();
+    const userData = {
+        username: $('#username').val(),
+        password: $('#password').val(),
+        nickname: $('#nickname').val(),
+        sex: $('#sex').val(),
+        age: $('#age').val(),
+        phone: $('#phone').val(),
+        email: $('#email').val()
+    };
+
+    if (userId) {
+        userData.id = userId;
+    }
+
+    $.ajax({
+        url: userId ? '/user/edit' : '/user/addadmin',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(userData),
+        success: function(response) {
+            if (response.code === 200) {
+                alert('保存成功');
+                $('#userModal').modal('hide');
+                loadUsers(currentPage);
+            } else {
+                alert('保存失败：' + response.msg);
+            }
+        },
+        error: function() {
+            alert('保存失败');
+        }
+    });
+}
+
+// 删除用户
+function deleteUser(id) {
+    if (confirm('确定要删除这个用户吗？')) {
+        $.ajax({
+            url: `/user/delete/${id}`,
+            type: 'POST',
+            success: function(response) {
+                if (response.code === 200) {
+                    alert('删除成功');
+                    loadUsers(currentPage);
+                } else {
+                    alert('删除失败：' + response.msg);
+                }
+            },
+            error: function() {
+                alert('删除失败');
+            }
+        });
+    }
+}
+
+// 搜索用户
+function searchUsers() {
+    const username = $('#searchUsername').val();
+    loadUsers(1, username);
+}
+
+// 重置搜索
+function resetSearch() {
+    $('#searchUsername').val('');
+    loadUsers(1);
+}
+
+// 加载用户列表
+function loadUsers(page = 1, username = '') {
+    $.ajax({
+        url: '/user/adminlist',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            username: username,
+            page: page,
+            limit: pageSize
+        }),
+        success: function(response) {
+            if (response.code === 200) {
+                renderUserTable(response.data);
+            } else {
+                alert('加载用户列表失败：' + response.msg);
+            }
+        },
+        error: function() {
+            alert('加载用户列表失败');
+        }
+    });
+}
+
+// 页面加载完成后执行
+$(document).ready(function() {
+    loadUsers();
+});
+</script>
+{% endblock %}

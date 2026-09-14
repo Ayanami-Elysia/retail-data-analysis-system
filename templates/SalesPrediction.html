@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}销售趋势预测与库存预警{% endblock %}
+
+{% block content %}
+<style>
+    /* 修复部分浏览器/主题下 select 下拉被裁切或遮挡 */
+    .sales-prediction-toolbar-card {
+        position: relative;
+        z-index: 2000;
+        overflow: visible !important;
+    }
+    .sales-prediction-toolbar-card .card-body,
+    .sales-prediction-toolbar-card .d-flex {
+        overflow: visible !important;
+    }
+    #forecast-days {
+        min-width: 120px;
+    }
+</style>
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center" style="font-weight: 300; color: #e0e0e0;">销售趋势预测</h2>
+            <p class="text-center" style="color: rgba(255,255,255,0.65); margin-top: 10px;">
+                基于历史日销售额特征工程，使用 LightGBM / XGBoost 预测未来走势，并给出库存预警与补货建议
+            </p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm sales-prediction-toolbar-card" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center" style="gap:12px;">
+                        <span style="color:#e0e0e0;font-weight:500;">预测模型：</span>
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-lgb" onclick="loadForecast('lgb')">LightGBM</button>
+                        <button type="button" class="btn btn-sm btn-outline-light" id="btn-xgb" onclick="loadForecast('xgb')">XGBoost</button>
+                        <span style="color:rgba(255,255,255,0.5);margin-left:8px;">预测天数：</span>
+                        <select id="forecast-days" class="form-control form-control-lg" style="width:120px;background:#3a3a3a;color:#e0e0e0;border-color:#555;" onchange="loadForecast(currentModel)">
+                            <option value="7">7 天</option>
+                            <option value="14">14 天</option>
+                            <option value="30" selected>30 天</option>
+                        </select>
+                        <span id="forecast-loading" style="color:#4cc9f0;display:none;">计算中…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">历史销售额 vs 预测销售额</h5>
+                    <div id="forecast-chart" style="width: 100%; height: 420px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #16213e;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #4cc9f0;">库存预警与补货建议</h5>
+                    <div id="inventory-level-badge" class="mb-3"></div>
+                    <p id="inventory-growth" style="color: #e0e0e0; font-size: 14px; margin-bottom: 12px;"></p>
+                    <div id="inventory-suggestion" style="color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.6; padding: 12px; background: rgba(15,52,96,0.6); border-radius: 8px; border-left: 3px solid #4cc9f0;"></div>
+                    <p id="forecast-error" class="mt-3 mb-0" style="color: #ff6b6b; font-size: 13px; display: none;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+<script>
+var currentModel = 'lgb';
+var forecastChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadForecast('lgb');
+});
+
+function getDays() {
+    var el = document.getElementById('forecast-days');
+    return el ? parseInt(el.value, 10) || 30 : 30;
+}
+
+function loadForecast(model) {
+    currentModel = model;
+    document.getElementById('btn-lgb').className = model === 'lgb'
+        ? 'btn btn-sm btn-primary'
+        : 'btn btn-sm btn-outline-light';
+    document.getElementById('btn-xgb').className = model === 'xgb'
+        ? 'btn btn-sm btn-primary'
+        : 'btn btn-sm btn-outline-light';
+
+    document.getElementById('forecast-loading').style.display = 'inline';
+    document.getElementById('forecast-error').style.display = 'none';
+
+    var days = getDays();
+    fetch('/api/data_analysis/sales_forecast?model=' + encodeURIComponent(model) + '&days=' + days)
+        .then(function(r) { return r.json(); })
+        .then(drawForecast)
+        .catch(function(err) {
+            console.error('forecast error', err);
+            document.getElementById('forecast-loading').style.display = 'none';
+            document.getElementById('forecast-error').style.display = 'block';
+            document.getElementById('forecast-error').innerText = '请求失败，请检查服务与数据库连接。';
+        });
+}
+
+function drawForecast(data) {
+    document.getElementById('forecast-loading').style.display = 'none';
+
+    if (data.error) {
+        document.getElementById('forecast-error').style.display = 'block';
+        document.getElementById('forecast-error').innerText = data.error;
+        document.getElementById('inventory-level-badge').innerHTML = '';
+        document.getElementById('inventory-growth').innerText = '';
+        document.getElementById('inventory-suggestion').innerText = '请确保 sales_order 有足够历史日级数据，或稍后重试。';
+        return;
+    }
+
+    document.getElementById('forecast-error').style.display = 'none';
+
+    var dom = document.getElementById('forecast-chart');
+    if (!forecastChart) {
+        forecastChart = echarts.init(dom);
+    }
+    forecastChart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['历史销售额', '预测销售额'], textStyle: { color: '#ddd' }, bottom: 0 },
+        grid: { left: '3%', right: '4%', bottom: '12%', containLabel: true },
+        xAxis: { type: 'category', data: data.dates || [], axisLabel: { color: '#ddd', rotate: 35 } },
+        yAxis: { type: 'value', name: '金额(元)', nameTextStyle: { color: '#ddd' }, axisLabel: { color: '#ddd' } },
+        series: [
+            { name: '历史销售额', type: 'line', data: data.historical || [], smooth: true, connectNulls: false, itemStyle: { color: '#4cc9f0' } },
+            { name: '预测销售额', type: 'line', data: data.predicted || [], smooth: true, connectNulls: false, lineStyle: { type: 'dashed' }, itemStyle: { color: '#f72585' } }
+        ]
+    });
+    window.addEventListener('resize', function() { forecastChart.resize(); });
+
+    var alert = data.inventory_alert || {};
+    var level = alert.level || 'normal';
+    var growth = alert.growth_7d_pct;
+    var suggestion = alert.suggestion || '—';
+
+    var badgeHtml = '';
+    if (level === 'warning') {
+        badgeHtml = '<span class="badge badge-warning badge-pill" style="font-size:13px;">预警：需求上升</span>';
+    } else if (level === 'info') {
+        badgeHtml = '<span class="badge badge-info badge-pill" style="font-size:13px;">提示：需求偏弱</span>';
+    } else {
+        badgeHtml = '<span class="badge badge-success badge-pill" style="font-size:13px;">正常</span>';
+    }
+    document.getElementById('inventory-level-badge').innerHTML = badgeHtml;
+    document.getElementById('inventory-growth').innerHTML =
+        '<strong>' + (data.model_type || '') + '</strong><br/>' +
+        '未来 7 天相对近期趋势：<span style="color:#4cc9f0;">' + (growth != null ? growth : '—') + '%</span>';
+    document.getElementById('inventory-suggestion').innerText = suggestion;
+}
+</script>
+{% endblock %}

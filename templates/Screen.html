@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电商数据分析平台</title>
+    <!-- 引入必要的CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap');
+        
+        body {
+            background: linear-gradient(135deg, #082b63 0%, #0a4da2 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container-fluid {
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .title-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        
+        .btn-apple {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-apple:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chart-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: calc(50vh - 60px);
+            margin-bottom: 15px;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-body {
+            padding: 15px;
+            height: 100%;
+        }
+        
+        .card-title {
+            font-weight: 500;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 8px;
+            opacity: 0.8;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: calc(100% - 30px);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .charts-grid {
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            padding: 0 15px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        .charts-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .charts-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .charts-grid::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+        }
+        
+        /* Modal styling */
+        .modal-content {
+            background: rgba(13, 56, 125, 0.8) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 20px !important;
+        }
+        
+        .modal-body {
+            background: rgba(10, 44, 100, 0.4) !important;
+            padding: 25px !important;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 15px 20px !important;
+        }
+        
+        .apple-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="title-section">
+        <div class="d-flex justify-content-between align-items-center px-4">
+            <h2>电商数据可视化平台</h2>
+            <div>
+                <button id="predictBtn" class="btn-apple mr-2">
+                    <i class="fas fa-chart-line mr-2"></i>智能预测
+                </button>
+                <button id="userAnalysisBtn" class="btn-apple">
+                    <i class="fas fa-users mr-2"></i>用户分析
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="row">
+            <!-- 营业额时间走势 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-chart-line"></i>营业额时间走势</h5>
+                        <div id="sales-trend-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 客户区域分布热图 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-map-marker-alt"></i>客户区域分布热图</h5>
+                        <div id="user-map-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 产品分类市场份额 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-chart-pie"></i>产品分类市场份额</h5>
+                        <div id="category-sales-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 多渠道业绩对比 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-exchange-alt"></i>多渠道业绩对比</h5>
+                        <div id="channel-analysis-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 消费者行为模式 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-user-friends"></i>消费者行为模式</h5>
+                        <div id="user-behavior-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 交易方式偏好分析 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-credit-card"></i>交易方式偏好分析</h5>
+                        <div id="payment-method-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 明星产品销量排名 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-star"></i>明星产品销量排名</h5>
+                        <div id="hot-products-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIP客户价值层级 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-crown"></i>VIP客户价值层级</h5>
+                        <div id="member-consumption-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户分析模态框 - 蓝色调风格 -->
+    <div class="modal fade" id="userAnalysisModal" tabindex="-1" role="dialog" aria-labelledby="userAnalysisModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userAnalysisModalLabel" style="color: #fff; font-weight: 500;">
+                        <i class="fas fa-users mr-2"></i>用户行为智能分析
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff; opacity: 0.8;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4" id="loadingUserAnalysis" style="display: none;">
+                        <div class="spinner-border" role="status" style="color: #fff; width: 3rem; height: 3rem;">
+                            <span class="sr-only">分析处理中...</span>
+                        </div>
+                        <p class="mt-3" style="color: #fff; font-size: 1.1rem;">LightGBM算法正在分析用户行为数据，请稍候...</p>
+                    </div>
+                    <div id="userAnalysisResult">
+                        <div class="mb-4">
+                            <div id="user-cluster-chart" style="width: 100%; height: 350px; border-radius: 16px; overflow: hidden;"></div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <div class="apple-card">
+                                    <div class="card-body" style="padding: 20px;">
+                                        <h5 class="card-title" style="color: #fff; font-weight: 500; font-size: 1.1rem; margin-bottom: 15px;">
+                                            <i class="fas fa-chart-pie mr-2"></i>用户分群情况
+                                        </h5>
+                                        <div id="cluster-info" style="color: #fff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="apple-card">
+                                    <div class="card-body" style="padding: 20px;">
+                                        <h5 class="card-title" style="color: #fff; font-weight: 500; font-size: 1.1rem; margin-bottom: 15px;">
+                                            <i class="fas fa-lightbulb mr-2"></i>购买意向预测
+                                        </h5>
+                                        <div id="purchase-prediction" style="color: #fff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="apple-card">
+                                    <div class="card-body" style="padding: 20px;">
+                                        <h5 class="card-title" style="color: #fff; font-weight: 500; font-size: 1.1rem; margin-bottom: 15px;">
+                                            <i class="fas fa-bullseye mr-2"></i>营销策略建议
+                                        </h5>
+                                        <div id="marketing-suggestions" style="color: #fff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <small style="color: rgba(255, 255, 255, 0.7);">* 基于LightGBM和聚类算法分析用户行为特征</small>
+                    </div>
+                    <button type="button" class="btn-apple" data-dismiss="modal">
+                        <i class="fas fa-check mr-1"></i>完成
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预测结果模态框 - 苹果风格 -->
+    <div class="modal fade" id="predictModal" tabindex="-1" role="dialog" aria-labelledby="predictModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="predictModalLabel" style="color: #fff; font-weight: 500;">
+                        <i class="fas fa-chart-line mr-2"></i>智能销售趋势预测
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff; opacity: 0.8;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4" id="loadingPredict" style="display: none;">
+                        <div class="spinner-border" role="status" style="color: #fff; width: 3rem; height: 3rem;">
+                            <span class="sr-only">分析处理中...</span>
+                        </div>
+                        <p class="mt-3" style="color: #fff; font-size: 1.1rem;">AI模型正在进行多维数据分析，请稍候...</p>
+                    </div>
+                    <div id="predictResult">
+                        <div id="predict-chart" style="width: 100%; height: 400px; border-radius: 16px; overflow: hidden;"></div>
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="apple-card">
+                                    <div class="card-body" style="padding: 20px;">
+                                        <h5 class="card-title" style="color: #fff; font-weight: 500; font-size: 1.1rem; margin-bottom: 15px;">
+                                            <i class="fas fa-chart-pie mr-2"></i>模型精度分析
+                                        </h5>
+                                        <div id="accuracy-info" style="color: #fff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="apple-card">
+                                    <div class="card-body" style="padding: 20px;">
+                                        <h5 class="card-title" style="color: #fff; font-weight: 500; font-size: 1.1rem; margin-bottom: 15px;">
+                                            <i class="fas fa-lightbulb mr-2"></i>策略建议
+                                        </h5>
+                                        <div id="prediction-conclusion" style="color: #fff;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div>
+                        <small style="color: rgba(255, 255, 255, 0.7);">* 基于机器学习算法分析历史销售数据</small>
+                    </div>
+                    <button type="button" class="btn-apple" data-dismiss="modal">
+                        <i class="fas fa-check mr-1"></i>完成
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 修改 JS 引入部分 -->
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/china.js') }}"></script>
+
+<script>
+    // 页面加载完成后初始化所有图表
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置ECharts苹果蓝色主题
+        echarts.registerTheme('appleBlue', {
+            color: ['#007aff', '#5ac8fa', '#34c759', '#af52de', '#ff9500', '#ff2d55', '#5856d6', '#64d2ff'],
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            textStyle: {
+                color: '#ffffff'
+            },
+            title: {
+                textStyle: {
+                    color: '#ffffff'
+                },
+                subtextStyle: {
+                    color: 'rgba(255, 255, 255, 0.7)'
+                }
+            },
+            line: {
+                itemStyle: {
+                    borderWidth: 2
+                },
+                lineStyle: {
+                    width: 3
+                },
+                symbolSize: 8,
+                symbol: 'circle',
+                smooth: true
+            },
+            radar: {
+                itemStyle: {
+                    borderWidth: 2
+                },
+                lineStyle: {
+                    width: 3
+                },
+                symbolSize: 8,
+                symbol: 'circle',
+                smooth: true
+            },
+            bar: {
+                itemStyle: {
+                    barBorderWidth: 0,
+                    barBorderColor: '#ccc'
+                }
+            },
+            pie: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            scatter: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            boxplot: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            parallel: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            sankey: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            funnel: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            gauge: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                }
+            },
+            candlestick: {
+                itemStyle: {
+                    color: '#eb5454',
+                    color0: '#47b262',
+                    borderColor: '#eb5454',
+                    borderColor0: '#47b262',
+                    borderWidth: 1
+                }
+            },
+            graph: {
+                itemStyle: {
+                    borderWidth: 0,
+                    borderColor: '#ccc'
+                },
+                lineStyle: {
+                    width: 1,
+                    color: '#aaa'
+                },
+                symbolSize: 8,
+                symbol: 'circle',
+                smooth: true,
+                color: ['#007aff', '#5ac8fa', '#34c759', '#af52de', '#ff9500', '#ff2d55', '#5856d6', '#64d2ff'],
+                label: {
+                    color: '#ffffff'
+                }
+            },
+            map: {
+                itemStyle: {
+                    areaColor: '#eee',
+                    borderColor: '#444',
+                    borderWidth: 0.5
+                },
+                label: {
+                    color: '#000'
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: '#e098c7',
+                        borderColor: '#444',
+                        borderWidth: 1
+                    },
+                    label: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            geo: {
+                itemStyle: {
+                    areaColor: '#eee',
+                    borderColor: '#444',
+                    borderWidth: 0.5
+                },
+                label: {
+                    color: '#000'
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: '#e098c7',
+                        borderColor: '#444',
+                        borderWidth: 1
+                    },
+                    label: {
+                        color: '#ffffff'
+                    }
+                }
+            },
+            categoryAxis: {
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisTick: {
+                    show: false,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisLabel: {
+                    show: true,
+                    color: 'rgba(255, 255, 255, 0.7)'
+                },
+                splitLine: {
+                    show: false,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                splitArea: {
+                    show: false,
+                    areaStyle: {
+                        color: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']
+                    }
+                }
+            },
+            valueAxis: {
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisTick: {
+                    show: false,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisLabel: {
+                    show: true,
+                    color: 'rgba(255, 255, 255, 0.7)'
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                splitArea: {
+                    show: false,
+                    areaStyle: {
+                        color: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']
+                    }
+                }
+            },
+            logAxis: {
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisTick: {
+                    show: false,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisLabel: {
+                    show: true,
+                    color: 'rgba(255, 255, 255, 0.7)'
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                splitArea: {
+                    show: false,
+                    areaStyle: {
+                        color: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']
+                    }
+                }
+            },
+            timeAxis: {
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisTick: {
+                    show: false,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    }
+                },
+                axisLabel: {
+                    show: true,
+                    color: 'rgba(255, 255, 255, 0.7)'
+                },
+                splitLine: {
+                    show: true,
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                splitArea: {
+                    show: false,
+                    areaStyle: {
+                        color: ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']
+                    }
+                }
+            },
+            toolbox: {
+                iconStyle: {
+                    borderColor: '#999'
+                },
+                emphasis: {
+                    iconStyle: {
+                        borderColor: '#666'
+                    }
+                }
+            },
+            legend: {
+                textStyle: {
+                    color: 'rgba(255, 255, 255, 0.7)'
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(10, 44, 100, 0.75)',
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#fff'
+                },
+                axisPointer: {
+                    lineStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)',
+                        width: 1
+                    },
+                    crossStyle: {
+                        color: 'rgba(255, 255, 255, 0.3)',
+                        width: 1
+                    }
+                }
+            },
+            timeline: {
+                lineStyle: {
+                    color: '#8fd3e8',
+                    width: 1
+                },
+                itemStyle: {
+                    color: '#8fd3e8',
+                    borderWidth: 1
+                },
+                controlStyle: {
+                    color: '#8fd3e8',
+                    borderColor: '#8fd3e8',
+                    borderWidth: 0.5
+                },
+                checkpointStyle: {
+                    color: '#8fd3e8',
+                    borderColor: '#8a7ca8'
+                },
+                label: {
+                    color: '#8fd3e8'
+                },
+                emphasis: {
+                    itemStyle: {
+                        color: '#8fd3e8'
+                    },
+                    controlStyle: {
+                        color: '#8fd3e8',
+                        borderColor: '#8fd3e8',
+                        borderWidth: 0.5
+                    },
+                    label: {
+                        color: '#8fd3e8'
+                    }
+                }
+            },
+            visualMap: {
+                color: ['#007aff', '#5ac8fa', '#34c759', '#af52de', '#ff9500', '#ff2d55']
+            },
+            dataZoom: {
+                backgroundColor: 'rgba(0,0,0,0)',
+                dataBackgroundColor: 'rgba(255,255,255,0.3)',
+                fillerColor: 'rgba(167,183,204,0.4)',
+                handleColor: '#a7b7cc',
+                handleSize: '100%',
+                textStyle: {
+                    color: '#333'
+                }
+            },
+            markPoint: {
+                label: {
+                    color: '#ffffff'
+                },
+                emphasis: {
+                    label: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        });
+
+        // 获取所有图表数据
+        fetchAllChartData();
+
+        // 初始化预测按钮事件
+        document.getElementById('predictBtn').addEventListener('click', function() {
+            showPredictionModal();
+        });
+        
+        // 初始化用户分析按钮事件
+        document.getElementById('userAnalysisBtn').addEventListener('click', function() {
+            showUserAnalysisModal();
+        });
+
+        // 添加模态框关闭按钮事件监听
+        var closeButtons = document.querySelectorAll('[data-dismiss="modal"]');
+        closeButtons.forEach(function(button) {
+            button.addEventListener('click', closeModal);
+        });
+    });
+
+    // 使用苹果蓝色主题初始化各图表
+    // 这里将所有的echarts.init调用中的'darkTheme'替换为'appleBlue'
+    // 例如：
+    function initSalesTrendChart(data) {
+        var chartDom = document.getElementById('sales-trend-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        
+        // 其他图表配置保持不变...
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                }
+            },
+            legend: {
+                data: ['销售额', '订单数'],
+                bottom: 0
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                top: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: data.dates || ['暂无数据'],
+                axisLabel: {
+                    interval: 0,
+                    rotate: 30
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '销售额(元)'
+                },
+                {
+                    type: 'value',
+                    name: '订单数'
+                }
+            ],
+            series: [
+                {
+                    name: '销售额',
+                    type: 'bar',
+                    data: data.amounts || [0]
+                },
+                {
+                    name: '订单数',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: data.orders || [0],
+                    smooth: true,
+                    symbol: 'emptyCircle',
+                    symbolSize: 8
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 同样替换其他所有图表初始化函数中的主题，保持基本配置不变
+    // 修改预测图表样式，使用苹果风格
+    function initPredictionChart(data) {
+        var chartDom = document.getElementById('predict-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        
+        // 保持其他配置基本不变，但做一些风格调整...
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: 'rgba(10, 44, 100, 0.75)'
+                    }
+                },
+                formatter: function(params) {
+                    // 保持tooltip formatter逻辑不变...
+                    if (!Array.isArray(params)) {
+                        params = [params];
+                    }
+
+                    var date = params[0].name;
+                    var result = date + '<br/>';
+
+                    var validParams = params.filter(function(item) {
+                        return item.value !== null && item.value !== undefined;
+                    });
+
+                    if (validParams.length === 0) {
+                        return date + '<br/>暂无数据';
+                    }
+
+                    validParams.forEach(function(item) {
+                        result += '<div style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:' +
+                            item.color + '; margin-right:5px;"></div>';
+                        result += item.seriesName + ': ¥' + (typeof item.value === 'number' ? item.value.toLocaleString() : '暂无数据') + '<br/>';
+                    });
+
+                    return result;
+                }
+            },
+            legend: {
+                data: ['历史销售额', '预测销售额'],
+                bottom: 10
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                top: '5%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: data.dates || []
+            },
+            yAxis: {
+                type: 'value',
+                name: '销售额(元)'
+            },
+            series: [
+                {
+                    name: '历史销售额',
+                    type: 'line',
+                    data: data.historical.map(function(val) {
+                        return val !== null ? val : null;
+                    }),
+                    connectNulls: false,
+                    smooth: true,
+                    symbol: 'emptyCircle',
+                    symbolSize: 6,
+                    lineStyle: {
+                        width: 3
+                    },
+                    areaStyle: {
+                        opacity: 0.2
+                    }
+                },
+                {
+                    name: '预测销售额',
+                    type: 'line',
+                    data: data.predicted.map(function(val) {
+                        return val !== null ? val : null;
+                    }),
+                    connectNulls: false,
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 6,
+                    lineStyle: {
+                        width: 3,
+                        type: 'dashed'
+                    },
+                    areaStyle: {
+                        opacity: 0.2
+                    },
+                    markArea: {
+                        itemStyle: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 0
+                        },
+                        data: [
+                            [{
+                                xAxis: data.prediction_start_index,
+                                name: '预测区间',
+                                label: {
+                                    show: true,
+                                    position: 'insideTop',
+                                    distance: 20,
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    fontSize: 12
+                                }
+                            }, {
+                                xAxis: data.dates ? data.dates.length - 1 : 0
+                            }]
+                        ]
+                    }
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 获取所有图表数据的函数
+    function fetchAllChartData() {
+        // 营业额时间走势
+        fetch('/api/data_analysis/sales_trend')
+            .then(response => response.json())
+            .then(data => {
+                initSalesTrendChart(data);
+            });
+
+        // 客户区域分布热图
+        fetch('/api/data_analysis/user_distribution')
+            .then(response => response.json())
+            .then(data => {
+                initUserMapChart(data);
+            });
+
+        // 产品分类市场份额
+        fetch('/api/data_analysis/category_sales')
+            .then(response => response.json())
+            .then(data => {
+                initCategorySalesChart(data);
+            });
+
+        // 多渠道业绩对比
+        fetch('/api/data_analysis/channel_analysis')
+            .then(response => response.json())
+            .then(data => {
+                initChannelAnalysisChart(data);
+            });
+
+        // 消费者行为模式
+        fetch('/api/data_analysis/user_behavior')
+            .then(response => response.json())
+            .then(data => {
+                initUserBehaviorChart(data);
+            });
+
+        // 交易方式偏好分析
+        fetch('/api/data_analysis/payment_methods')
+            .then(response => response.json())
+            .then(data => {
+                initPaymentMethodChart(data);
+            });
+
+        // 明星产品销量排名
+        fetch('/api/data_analysis/hot_products')
+            .then(response => response.json())
+            .then(data => {
+                initHotProductsChart(data);
+            });
+
+        // VIP客户价值层级
+        fetch('/api/data_analysis/member_consumption')
+            .then(response => response.json())
+            .then(data => {
+                initMemberConsumptionChart(data);
+            });
+    }
+
+    // 初始化客户区域分布热图表
+    function initUserMapChart(data) {
+        var chartDom = document.getElementById('user-map-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c} (用户数)'
+            },
+            visualMap: {
+                min: 0,
+                max: data.max || 1,
+                left: 'left',
+                top: 'bottom',
+                text: ['高', '低'],
+                calculable: true,
+                inRange: {
+                    color: ['#e0f3f8', '#abd9e9', '#74add1', '#4575b4', '#313695']
+                }
+            },
+            series: [
+                {
+                    name: '用户分布',
+                    type: 'map',
+                    map: 'china',
+                    roam: true,
+                    emphasis: {
+                        label: {
+                            show: true
+                        }
+                    },
+                    data: data.regions || []
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化产品分类市场份额图表
+    function initCategorySalesChart(data) {
+        var chartDom = document.getElementById('category-sales-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'horizontal',
+                bottom: 10,
+                data: data.categories
+            },
+            series: [
+                {
+                    name: '销售额',
+                    type: 'pie',
+                    radius: '50%',
+                    center: ['50%', '45%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 5,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}: {d}%'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '18',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: data.data
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化多渠道业绩对比图表
+    function initChannelAnalysisChart(data) {
+        var chartDom = document.getElementById('channel-analysis-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['订单数', '销售额']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: data.channels
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name: '订单数',
+                    type: 'bar',
+                    stack: 'total',
+                    data: data.orders,
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                },
+                {
+                    name: '销售额',
+                    type: 'bar',
+                    stack: 'total',
+                    data: data.amounts,
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化消费者行为模式图表
+    function initUserBehaviorChart(data) {
+        var chartDom = document.getElementById('user-behavior-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                bottom: '5%',
+                left: 'center'
+            },
+            series: [
+                {
+                    name: '用户行为',
+                    type: 'funnel',
+                    left: '10%',
+                    top: 60,
+                    bottom: 60,
+                    width: '80%',
+                    min: 0,
+                    max: Math.max(...data.data.map(item => item.value)) || 10,
+                    minSize: '0%',
+                    maxSize: '100%',
+                    sort: 'descending',
+                    gap: 2,
+                    label: {
+                        show: true,
+                        position: 'inside'
+                    },
+                    emphasis: {
+                        label: {
+                            fontSize: 20
+                        }
+                    },
+                    data: data.data
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化交易方式偏好分析图表
+    function initPaymentMethodChart(data) {
+        var chartDom = document.getElementById('payment-method-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                right: 10,
+                top: 'center',
+                data: data.methods
+            },
+            series: [
+                {
+                    name: '支付方式',
+                    type: 'pie',
+                    radius: ['30%', '60%'],
+                    roseType: 'area',
+                    itemStyle: {
+                        borderRadius: 8
+                    },
+                    data: data.data,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化明星产品销量排名图表
+    function initHotProductsChart(data) {
+        var chartDom = document.getElementById('hot-products-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: data.products || ['暂无数据'],
+            },
+            yAxis: {
+                type: 'value',
+                name: '销售量'
+            },
+            series: [
+                {
+                    name: '销售量',
+                    type: 'scatter',
+                    symbolSize: function(val) {
+                        return Math.sqrt(val) * 5;
+                    },
+                    data: data.sales || [0],
+                    itemStyle: {
+                        color: function(params) {
+                            // 创建渐变色
+                            return {
+                                type: 'linear',
+                                x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    {offset: 0, color: '#83bff6'},
+                                    {offset: 1, color: '#188df0'}
+                                ]
+                            };
+                        }
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 初始化VIP客户价值层级图表
+    function initMemberConsumptionChart(data) {
+        var chartDom = document.getElementById('member-consumption-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['平均消费金额', '消费总额', '会员数量']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value'
+            },
+            yAxis: {
+                type: 'category',
+                data: data.levels.reverse(),
+                axisLabel: {
+                    interval: 0
+                }
+            },
+            series: [
+                {
+                    name: '平均消费金额',
+                    type: 'bar',
+                    stack: 'total',
+                    label: {
+                        show: true
+                    },
+                    emphasis: {
+                        focus: 'series'
+                    },
+                    data: data.avg_amounts.reverse(),
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                },
+                {
+                    name: '会员数量',
+                    type: 'line',
+                    data: data.counts.reverse(),
+                    symbolSize: 10,
+                    symbol: 'circle',
+                    smooth: true,
+                    lineStyle: {
+                        width: 3
+                    },
+                    itemStyle: {
+                        color: '#ee6666'
+                    }
+                }
+            ]
+        };
+        myChart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+
+    // 显示预测模态框并获取预测数据
+    function showPredictionModal() {
+        // 手动显示模态框
+        var modal = document.getElementById('predictModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // 创建背景遮罩
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+        
+        // 显示加载中
+        document.getElementById('loadingPredict').style.display = 'block';
+        document.getElementById('predictResult').style.display = 'none';
+        
+        // 获取预测数据
+        fetch('/api/data_analysis/sales_prediction')
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载中
+                document.getElementById('loadingPredict').style.display = 'none';
+                document.getElementById('predictResult').style.display = 'block';
+
+                // 初始化预测图表
+                initPredictionChart(data);
+
+                // 显示预测准确度
+                document.getElementById('accuracy-info').innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="color: #8d99ae;">模型类型:</span>
+                        <span style="color: #fff; font-weight: 500;">${data.model_type}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="color: #8d99ae;">准确率:</span>
+                        <span style="color: #4cc9f0; font-weight: 600; font-size: 1.1rem;">${data.accuracy}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="color: #8d99ae;">均方误差:</span>
+                        <span style="color: #fff;">${data.mse}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #8d99ae;">R²得分:</span>
+                        <span style="color: #fff;">${data.r2_score}</span>
+                    </div>
+                `;
+
+                // 获取增长率颜色
+                let growthColor = data.growth_rate > 0 ? '#72efdd' : '#f94144';
+
+                // 显示预测结论
+                document.getElementById('prediction-conclusion').innerHTML = `
+                    <p style="color: #e0e0e0; margin-bottom: 15px;">${data.conclusion}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="color: #8d99ae;">预测增长率:</span>
+                        <span style="color: ${growthColor}; font-weight: 600;">${data.growth_rate}%</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color: #8d99ae;">未来30天预计销售额:</span>
+                        <span style="color: #fff; font-weight: 600; font-size: 1.1rem;">¥${data.predicted_total.toLocaleString()}</span>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('获取预测数据失败:', error);
+                document.getElementById('loadingPredict').style.display = 'none';
+                document.getElementById('predictResult').style.display = 'block';
+                document.getElementById('predict-chart').innerHTML = '<div class="alert" style="background-color: #7d1128; color: #fff; border-radius: 10px; padding: 20px; text-align: center;"><i class="fas fa-exclamation-triangle mr-2"></i>获取预测数据失败，请稍后再试</div>';
+            });
+    }
+
+    // 显示用户分析模态框并获取分析数据
+    function showUserAnalysisModal() {
+        // 手动显示模态框
+        var modal = document.getElementById('userAnalysisModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // 创建背景遮罩
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+        
+        // 显示加载中
+        document.getElementById('loadingUserAnalysis').style.display = 'block';
+        document.getElementById('userAnalysisResult').style.display = 'none';
+        
+        // 获取用户分析数据
+        fetch('/api/data_analysis/user_analysis')
+            .then(response => response.json())
+            .then(data => {
+                // 隐藏加载中
+                document.getElementById('loadingUserAnalysis').style.display = 'none';
+                document.getElementById('userAnalysisResult').style.display = 'block';
+                
+                // 初始化用户聚类图表
+                initUserClusterChart(data);
+                
+                // 显示用户分群信息
+                document.getElementById('cluster-info').innerHTML = generateClusterInfo(data);
+                
+                // 显示购买意向预测
+                document.getElementById('purchase-prediction').innerHTML = generatePurchasePrediction(data);
+                
+                // 显示营销策略建议
+                document.getElementById('marketing-suggestions').innerHTML = generateMarketingSuggestions(data);
+            })
+            .catch(error => {
+                console.error('获取用户分析数据失败:', error);
+                document.getElementById('loadingUserAnalysis').style.display = 'none';
+                document.getElementById('userAnalysisResult').style.display = 'block';
+                document.getElementById('user-cluster-chart').innerHTML = '<div style="background-color: rgba(255,77,79,0.2); color: #fff; border-radius: 10px; padding: 20px; text-align: center;"><i class="fas fa-exclamation-triangle mr-2"></i>获取用户分析数据失败，请稍后再试</div>';
+            });
+    }
+    
+    // 初始化用户聚类图表 - 蓝色调风格
+    function initUserClusterChart(data) {
+        var chartDom = document.getElementById('user-cluster-chart');
+        var myChart = echarts.init(chartDom, 'appleBlue');
+        
+        // 为不同的聚类群体定义颜色映射
+        var clusterColors = {
+            1: '#007aff', // 蓝色
+            2: '#5ac8fa', // 浅蓝色
+            3: '#34c759', // 绿色
+            4: '#af52de', // 紫色 
+            5: '#ff9500', // 橙色
+            6: '#ff2d55'  // 红色
+        };
+        
+        // 准备图表数据
+        var option = {
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    var cluster = data.clusters.find(c => c.id === params.data[3]);
+                    return `<div style="padding: 8px;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">用户群体 ${params.data[3]}</div>
+                        <div>行为: ${params.data[4]}</div>
+                        <div>活跃度: ${params.data[0].toFixed(2)}</div>
+                        <div>购买倾向: ${params.data[1].toFixed(2)}</div>
+                        <div>流失风险: ${params.data[2].toFixed(2)}</div>
+                        <div style="margin-top: 5px; font-style: italic; font-size: 12px;">该群体包含 ${cluster.user_count} 名用户</div>
+                    </div>`;
+                }
+            },
+            grid: {
+                left: '10%',
+                right: '10%',
+                bottom: '12%',
+                top: '5%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                name: '活跃度',
+                nameLocation: 'middle',
+                nameGap: 30,
+                min: 0,
+                max: 1,
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed',
+                        opacity: 0.2
+                    }
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '购买倾向',
+                nameLocation: 'middle',
+                nameGap: 30,
+                min: 0,
+                max: 1,
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed',
+                        opacity: 0.2
+                    }
+                }
+            },
+            series: [{
+                name: '用户聚类',
+                type: 'scatter',
+                symbolSize: function(data) {
+                    // 流失风险越高，点越大
+                    return 20 + data[2] * 30;
+                },
+                itemStyle: {
+                    opacity: 0.9,
+                    borderColor: 'rgba(255, 255, 255, 0.6)',
+                    borderWidth: 1,
+                    color: function(params) {
+                        // 根据聚类ID设置不同颜色
+                        return clusterColors[params.data[3]] || '#ffffff';
+                    }
+                },
+                emphasis: {
+                    itemStyle: {
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                        shadowColor: 'rgba(0, 0, 0, 0.5)',
+                        shadowBlur: 10
+                    }
+                },
+                data: data.user_points
+            }]
+        };
+        
+        // 添加图例
+        option.legend = {
+            data: data.clusters.map(cluster => {
+                let behaviorName = '';
+                switch(cluster.behavior_type) {
+                    case 'high_value': behaviorName = '高价值'; break;
+                    case 'potential': behaviorName = '潜力型'; break;
+                    case 'active_browser': behaviorName = '活跃浏览'; break;
+                    case 'cart_abandoner': behaviorName = '购物车弃用'; break;
+                    case 'at_risk': behaviorName = '流失风险'; break;
+                    default: behaviorName = cluster.behavior_type;
+                }
+                return `群体${cluster.id}: ${behaviorName}`;
+            }),
+            bottom: 0,
+            textStyle: {
+                color: '#fff',
+                fontSize: 11
+            },
+            itemWidth: 10,
+            itemHeight: 10
+        };
+        
+        myChart.setOption(option);
+        
+        // 窗口大小变化时，重新调整图表大小
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    }
+    
+    // 生成用户分群信息HTML
+    function generateClusterInfo(data) {
+        let html = '';
+        
+        data.clusters.forEach(cluster => {
+            let behavior = '';
+            let colorClass = '';
+            
+            switch(cluster.behavior_type) {
+                case 'high_value':
+                    behavior = '高价值';
+                    colorClass = '#72efdd';
+                    break;
+                case 'potential':
+                    behavior = '潜力型';
+                    colorClass = '#4cc9f0';
+                    break;
+                case 'active_browser':
+                    behavior = '活跃浏览';
+                    colorClass = '#4361ee';
+                    break;
+                case 'cart_abandoner':
+                    behavior = '购物车弃用';
+                    colorClass = '#ff9e00';
+                    break;
+                case 'at_risk':
+                    behavior = '流失风险';
+                    colorClass = '#ff2d55';
+                    break;
+                default:
+                    behavior = cluster.behavior_type;
+                    colorClass = '#ffffff';
+            }
+            
+            html += `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>群体 ${cluster.id}:</span>
+                    <span style="color: ${colorClass};">${behavior} (${cluster.user_count}人)</span>
+                </div>
+            `;
+        });
+        
+        html += `
+            <div class="mt-3 pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>总分析用户数:</span>
+                    <span style="font-weight: 600;">${data.total_users}人</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span>购买意向平均值:</span>
+                    <span>${data.avg_purchase_intention.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    // 生成购买意向预测HTML
+    function generatePurchasePrediction(data) {
+        const accuracy = data.model_accuracy;
+        let accuracyColor = '#ff2d55';
+        
+        if (accuracy >= 90) {
+            accuracyColor = '#34c759';
+        } else if (accuracy >= 80) {
+            accuracyColor = '#5ac8fa';
+        } else if (accuracy >= 70) {
+            accuracyColor = '#007aff';
+        } else if (accuracy >= 60) {
+            accuracyColor = '#ff9f0a';
+        }
+        
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>模型:</span>
+                <span>LightGBM + ${data.second_model || 'KMeans'}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>模型准确率:</span>
+                <span style="color: ${accuracyColor}; font-weight: 600;">${accuracy.toFixed(2)}%</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>AUC值:</span>
+                <span>${data.auc.toFixed(3)}</span>
+            </div>
+            <div class="mt-3 pt-2" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <div style="font-weight: 500; margin-bottom: 5px;">未来30天购买意向预测:</div>
+                <div class="progress" style="height: 6px; background-color: rgba(255, 255, 255, 0.1); border-radius: 3px;">
+                    <div class="progress-bar" role="progressbar" 
+                        style="width: ${data.purchase_prediction.likely_to_purchase}%; background-color: #34c759; border-radius: 3px;" 
+                        aria-valuenow="${data.purchase_prediction.likely_to_purchase}" 
+                        aria-valuemin="0" 
+                        aria-valuemax="100">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-1" style="font-size: 12px; opacity: 0.8;">
+                    <span>${data.purchase_prediction.likely_to_purchase}%有购买意向</span>
+                    <span>${data.purchase_prediction.unlikely_to_purchase}%无购买意向</span>
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    // 生成营销策略建议HTML
+    function generateMarketingSuggestions(data) {
+        let html = '<div style="max-height: 200px; overflow-y: auto;">';
+        
+        data.marketing_suggestions.forEach((suggestion, index) => {
+            html += `<div style="margin-bottom: 8px; display: flex; align-items: flex-start;">
+                <div style="color: #5ac8fa; margin-right: 8px;"><i class="fas fa-angle-right"></i></div>
+                <div>${suggestion}</div>
+            </div>`;
+        });
+        
+        html += '</div>';
+        
+        return html;
+    }
+
+    // 添加模态框关闭函数 - 更新为通用函数
+    function closeModal() {
+        var modals = document.querySelectorAll('.modal');
+        modals.forEach(function(modal) {
+            if (modal.classList.contains('show')) {
+                modal.style.display = 'none';
+                modal.classList.remove('show');
+            }
+        });
+        
+        document.body.classList.remove('modal-open');
+        
+        // 移除背景遮罩
+        var backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            document.body.removeChild(backdrop);
+        }
+    }
+</script>
+</body>
+</html>

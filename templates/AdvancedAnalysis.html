@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+
+{% block title %}高级数据可视化{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center" style="font-weight: 300; color: #e0e0e0;">高级数据可视化看板</h2>
+            <p class="text-center" style="color: rgba(255,255,255,0.65); margin-top: 10px;">
+                品类分布 / 销售趋势 / 季节波动 / 渠道对比 / 客户结构 / 价格分布 / 退换货情况 / 销售热力图
+            </p>
+        </div>
+    </div>
+
+    <!-- 右下角：导出报告入口（点击打开弹框） -->
+    <button type="button" class="btn btn-primary rounded-circle shadow d-flex align-items-center justify-content-center"
+            style="position:fixed;bottom:28px;right:28px;width:56px;height:56px;z-index:1040;padding:0;border:none;background:linear-gradient(135deg,#4cc9f0,#4361ee);"
+            data-toggle="modal" data-target="#reportExportModal" title="自定义报告导出">
+        <i class="ion ion-md-cloud-download" style="font-size:26px;color:#fff;"></i>
+    </button>
+
+    <!-- 报告导出弹框 -->
+    <div class="modal fade" id="reportExportModal" tabindex="-1" role="dialog" aria-labelledby="reportExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content" style="background-color:#1a1a2e;color:#e0e0e0;border:1px solid rgba(76,201,240,0.35);border-radius:14px;">
+                <div class="modal-header" style="border-bottom:1px solid #16213e;">
+                    <h5 class="modal-title" id="reportExportModalLabel" style="color:#4cc9f0;font-weight:600;">
+                        <i class="ion ion-md-document mr-2"></i>自定义报告生成与导出
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#e0e0e0;opacity:0.85;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" style="max-height:70vh;">
+                    <p style="color: rgba(255,255,255,0.75); font-size: 13px; margin-bottom: 14px;">
+                        勾选需要纳入报告的模块，填写报告标题后，可导出 <strong style="color:#e0e0e0;">Excel（.xlsx）</strong> 或 <strong style="color:#e0e0e0;">PDF</strong> 便于存档与分享。
+                    </p>
+                    <div class="form-row align-items-end flex-wrap" style="gap:12px;">
+                        <div class="form-group mb-2 mb-md-0">
+                            <label style="color:#ccc;font-size:12px;">报告标题</label>
+                            <input type="text" id="report-title" class="form-control form-control-sm" style="min-width:220px;background:#2d2d2d;color:#e0e0e0;border-color:#444;" placeholder="高级数据分析报告" value="高级数据分析报告">
+                        </div>
+                        <div class="form-group mb-2 mb-md-0">
+                            <label style="color:#ccc;font-size:12px;">预测模块模型</label>
+                            <select id="report-forecast-model" class="form-control form-control-sm" style="width:120px;background:#2d2d2d;color:#e0e0e0;border-color:#444;">
+                                <option value="lgb">LightGBM</option>
+                                <option value="xgb">XGBoost</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2 mb-md-0">
+                            <label style="color:#ccc;font-size:12px;">预测天数</label>
+                            <select id="report-forecast-days" class="form-control form-control-sm report-export-select" style="width:120px;background:#2d2d2d;color:#e0e0e0;border-color:#444;">
+                                <option value="7">7 天</option>
+                                <option value="14">14 天</option>
+                                <option value="30" selected>30 天</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 mb-2" style="color:#aaa;font-size:12px;">包含章节（可多选）</div>
+                    <div class="d-flex flex-wrap" style="gap:10px 18px;">
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="category_sales" checked> 品类分布</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="sales_trend" checked> 销售趋势</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="seasonality" checked> 季节波动</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="channel_analysis" checked> 渠道对比</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="customer_structure" checked> 客户结构</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="price_distribution" checked> 价格分布</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="return_exchange" checked> 退换货/订单状态</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="sales_heatmap" checked> 销售热力图</label>
+                        <label class="mb-0" style="color:#ddd;font-size:13px;"><input type="checkbox" class="report-section mr-1" value="sales_forecast" checked> 销售预测与库存预警</label>
+                    </div>
+                    <pre id="report-preview" style="display:none;margin-top:14px;padding:10px;background:#16213e;color:#ccc;font-size:11px;border-radius:8px;max-height:160px;overflow:auto;"></pre>
+                </div>
+                <div class="modal-footer flex-wrap" style="border-top:1px solid #16213e;justify-content:space-between;">
+                    <span id="report-status" style="color:#4cc9f0;font-size:12px;"></span>
+                    <div style="gap:8px;" class="d-flex flex-wrap">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" onclick="previewReport()">预览结构</button>
+                        <button type="button" class="btn btn-sm btn-success" onclick="downloadReport('excel')">导出 Excel</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="downloadReport('pdf')">导出 PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #reportExportModal .report-export-select { overflow: visible !important; position: relative; z-index: 1060; }
+    </style>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">品类分布（饼图）</h5>
+                    <div id="category-pie" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">销售趋势（折线+柱）</h5>
+                    <div id="sales-trend" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">季节波动（按月）</h5>
+                    <div id="seasonality" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">渠道对比（柱状）</h5>
+                    <div id="channel-compare" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">客户结构（性别饼图 + 年龄柱状）</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <div id="sex-pie" style="width: 100%; height: 300px;"></div>
+                        </div>
+                        <div class="col-6">
+                            <div id="age-bar" style="width: 100%; height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">价格分布（分桶柱状）</h5>
+                    <div id="price-dist" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">销售预测（XGBoost/LightGBM）+ 库存预警</h5>
+                    <div class="d-flex mb-2" style="gap:10px;">
+                        <button class="btn btn-sm btn-primary" onclick="loadForecast('lgb')">LightGBM预测</button>
+                        <button class="btn btn-sm btn-outline-light" onclick="loadForecast('xgb')">XGBoost预测</button>
+                    </div>
+                    <div id="forecast-chart" style="width: 100%; height: 260px;"></div>
+                    <div id="inventory-alert" style="color: rgba(255,255,255,0.8); font-size: 12px; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">退换货/退款情况（漏斗）</h5>
+                    <div id="return-exchange" style="width: 100%; height: 340px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm" style="border-radius: 10px; border: none; background-color: #2d2d2d;">
+                <div class="card-body">
+                    <h5 class="card-title" style="font-weight: 500; color: #e0e0e0;">销售热力图（周几 × 小时）</h5>
+                    <div id="sales-heatmap" style="width: 100%; height: 360px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/echarts.min.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/data_analysis/category_sales').then(r=>r.json()).then(drawCategory);
+    fetch('/api/data_analysis/sales_trend').then(r=>r.json()).then(drawSalesTrend);
+    fetch('/api/data_analysis/seasonality').then(r=>r.json()).then(drawSeasonality);
+    fetch('/api/data_analysis/channel_analysis').then(r=>r.json()).then(drawChannel);
+    fetch('/api/data_analysis/customer_structure').then(r=>r.json()).then(drawCustomer);
+    fetch('/api/data_analysis/price_distribution').then(r=>r.json()).then(drawPrice);
+    fetch('/api/data_analysis/return_exchange').then(r=>r.json()).then(drawReturnExchange);
+    fetch('/api/data_analysis/sales_heatmap').then(r=>r.json()).then(drawHeatmap);
+    loadForecast('lgb');
+});
+
+function drawCategory(data){
+    const chart=echarts.init(document.getElementById('category-pie'));
+    chart.setOption({
+        tooltip:{trigger:'item'},
+        legend:{bottom:0,textStyle:{color:'#ddd'}},
+        series:[{type:'pie',radius:'60%',center:['50%','45%'],data:(data.data||[]),
+            itemStyle:{borderRadius:6,borderColor:'#2d2d2d',borderWidth:2},
+            label:{color:'#ddd'}
+        }]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawSalesTrend(data){
+    const chart=echarts.init(document.getElementById('sales-trend'));
+    chart.setOption({
+        tooltip:{trigger:'axis'},
+        legend:{data:['销售额','订单数'],textStyle:{color:'#ddd'}},
+        xAxis:{type:'category',data:data.dates||[],axisLabel:{color:'#ddd',rotate:30}},
+        yAxis:[
+            {type:'value',name:'销售额',axisLabel:{color:'#ddd'}},
+            {type:'value',name:'订单数',axisLabel:{color:'#ddd'}}
+        ],
+        series:[
+            {name:'销售额',type:'bar',data:data.amounts||[],itemStyle:{color:'#5470c6'}},
+            {name:'订单数',type:'line',yAxisIndex:1,data:data.orders||[],smooth:true,itemStyle:{color:'#91cc75'}}
+        ]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawSeasonality(data){
+    const chart=echarts.init(document.getElementById('seasonality'));
+    chart.setOption({
+        tooltip:{trigger:'axis'},
+        legend:{data:['销售额','订单数'],textStyle:{color:'#ddd'}},
+        xAxis:{type:'category',data:data.months||[],axisLabel:{color:'#ddd',rotate:30}},
+        yAxis:[
+            {type:'value',name:'销售额',axisLabel:{color:'#ddd'}},
+            {type:'value',name:'订单数',axisLabel:{color:'#ddd'}}
+        ],
+        series:[
+            {name:'销售额',type:'line',data:data.amounts||[],smooth:true,itemStyle:{color:'#4cc9f0'}},
+            {name:'订单数',type:'bar',yAxisIndex:1,data:data.orders||[],itemStyle:{color:'#ff9e00'}}
+        ]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawChannel(data){
+    const chart=echarts.init(document.getElementById('channel-compare'));
+    chart.setOption({
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        legend:{data:['订单数','销售额'],textStyle:{color:'#ddd'}},
+        grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+        xAxis:{type:'category',data:data.channels||[],axisLabel:{color:'#ddd',rotate:20}},
+        yAxis:{type:'value',axisLabel:{color:'#ddd'}},
+        series:[
+            {name:'订单数',type:'bar',data:data.orders||[],itemStyle:{color:'#91cc75'}},
+            {name:'销售额',type:'bar',data:data.amounts||[],itemStyle:{color:'#5470c6'}}
+        ]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawCustomer(data){
+    const sexPie=echarts.init(document.getElementById('sex-pie'));
+    sexPie.setOption({
+        tooltip:{trigger:'item'},
+        legend:{bottom:0,textStyle:{color:'#ddd'}},
+        series:[{type:'pie',radius:'55%',center:['50%','45%'],data:(data.sex||[]),label:{color:'#ddd'}}]
+    });
+    const ageBar=echarts.init(document.getElementById('age-bar'));
+    ageBar.setOption({
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+        xAxis:{type:'category',data:data.age_buckets||[],axisLabel:{color:'#ddd'}},
+        yAxis:{type:'value',axisLabel:{color:'#ddd'}},
+        series:[{type:'bar',data:data.age_counts||[],itemStyle:{color:'#4cc9f0'}}]
+    });
+    window.addEventListener('resize',()=>{sexPie.resize();ageBar.resize();});
+}
+
+function drawPrice(data){
+    const chart=echarts.init(document.getElementById('price-dist'));
+    chart.setOption({
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+        grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+        xAxis:{type:'category',data:data.buckets||[],axisLabel:{color:'#ddd'}},
+        yAxis:{type:'value',axisLabel:{color:'#ddd'}},
+        series:[{type:'bar',data:data.counts||[],itemStyle:{color:'#ff6d00'}}]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawReturnExchange(data){
+    const chart=echarts.init(document.getElementById('return-exchange'));
+    chart.setOption({
+        tooltip:{trigger:'item'},
+        legend:{bottom:0,textStyle:{color:'#ddd'}},
+        series:[{name:'订单状态',type:'funnel',left:'10%',top:40,bottom:40,width:'80%',
+            label:{show:true,position:'inside',color:'#fff'},
+            data:(data.data||[])}]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function drawHeatmap(data){
+    const chart=echarts.init(document.getElementById('sales-heatmap'));
+    const hours=(data.hours||[]).map(String);
+    const dows=['周日','周一','周二','周三','周四','周五','周六'];
+    const maxV=Math.max(...(data.data||[[0,0,0]]).map(x=>x[2]||0));
+    chart.setOption({
+        tooltip:{position:'top'},
+        grid:{height:'70%',top:'10%'},
+        xAxis:{type:'category',data:hours,splitArea:{show:true},axisLabel:{color:'#ddd'}},
+        yAxis:{type:'category',data:dows,splitArea:{show:true},axisLabel:{color:'#ddd'}},
+        visualMap:{min:0,max:maxV||1,calculable:true,orient:'horizontal',left:'center',bottom:0,
+            textStyle:{color:'#ddd'}},
+        series:[{type:'heatmap',data:(data.data||[]),label:{show:false},
+            emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.4)'}}}]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+}
+
+function loadForecast(model){
+    fetch(`/api/data_analysis/sales_forecast?model=${model}&days=30`)
+        .then(r=>r.json())
+        .then(drawForecast)
+        .catch(err=>console.error('forecast error', err));
+}
+
+function drawForecast(data){
+    const chart=echarts.init(document.getElementById('forecast-chart'));
+    const option={
+        tooltip:{trigger:'axis'},
+        legend:{data:['历史销售额','预测销售额'],textStyle:{color:'#ddd'}},
+        grid:{left:'3%',right:'4%',bottom:'3%',containLabel:true},
+        xAxis:{type:'category',data:data.dates||[],axisLabel:{color:'#ddd',rotate:30}},
+        yAxis:{type:'value',axisLabel:{color:'#ddd'}},
+        series:[
+            {name:'历史销售额',type:'line',data:(data.historical||[]),smooth:true,connectNulls:false,itemStyle:{color:'#4cc9f0'}},
+            {name:'预测销售额',type:'line',data:(data.predicted||[]),smooth:true,connectNulls:false,lineStyle:{type:'dashed'},itemStyle:{color:'#f72585'}}
+        ]
+    };
+    chart.setOption(option);
+    window.addEventListener('resize',()=>chart.resize());
+
+    const alert = data.inventory_alert || {};
+    const text = `${data.model_type || ''} | 未来7天预测增长：${alert.growth_7d_pct ?? 0}% | 建议：${alert.suggestion || ''}`;
+    document.getElementById('inventory-alert').innerText = text;
+}
+
+function getReportSections() {
+    return Array.from(document.querySelectorAll('.report-section:checked')).map(function(cb) { return cb.value; });
+}
+
+function getReportPayload() {
+    return {
+        title: (document.getElementById('report-title') || {}).value || '高级数据分析报告',
+        sections: getReportSections(),
+        forecast_model: (document.getElementById('report-forecast-model') || {}).value || 'lgb',
+        forecast_days: parseInt((document.getElementById('report-forecast-days') || {}).value, 10) || 30
+    };
+}
+
+function previewReport() {
+    var status = document.getElementById('report-status');
+    var pre = document.getElementById('report-preview');
+    status.innerText = '正在生成预览…';
+    fetch('/api/report/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getReportPayload())
+    })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            status.innerText = '';
+            if (data.ok && data.summary) {
+                pre.style.display = 'block';
+                pre.textContent = JSON.stringify(data.summary, null, 2);
+            } else {
+                pre.style.display = 'block';
+                pre.textContent = JSON.stringify(data, null, 2);
+            }
+        })
+        .catch(function(e) {
+            status.innerText = '预览失败';
+            console.error(e);
+        });
+}
+
+function downloadReport(fmt) {
+    var sections = getReportSections();
+    if (!sections.length) {
+        alert('请至少勾选一个报告章节');
+        return;
+    }
+    var status = document.getElementById('report-status');
+    status.innerText = '正在导出…';
+    var payload = getReportPayload();
+    var url = fmt === 'excel' ? '/api/report/excel' : '/api/report/pdf';
+    var ext = fmt === 'excel' ? '.xlsx' : '.pdf';
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+        .then(function(r) {
+            var ct = r.headers.get('Content-Type') || '';
+            if (!r.ok) {
+                return r.json().then(function(j) { throw new Error(j.error || '导出失败'); });
+            }
+            if (ct.indexOf('application/json') !== -1) {
+                return r.json().then(function(j) { throw new Error(j.error || '导出失败'); });
+            }
+            return r.blob();
+        })
+        .then(function(blob) {
+            var a = document.createElement('a');
+            var rawTitle = (payload.title || 'report').replace(/[<>:"/\\\\|?*]/g, '_');
+            a.href = URL.createObjectURL(blob);
+            a.download = rawTitle + ext;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(a.href);
+            status.innerText = '导出完成';
+            setTimeout(function() { status.innerText = ''; }, 3000);
+            if (window.jQuery && jQuery('#reportExportModal').length) {
+                jQuery('#reportExportModal').modal('hide');
+            }
+        })
+        .catch(function(err) {
+            status.innerText = '';
+            alert(err.message || '导出失败');
+        });
+}
+</script>
+{% endblock %}
+

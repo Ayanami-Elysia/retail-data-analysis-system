@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>登录</title>
+		<meta name="description" content="A responsive bootstrap 4 admin dashboard template by hencework">
+		<link href="../static/css/style.css" rel="stylesheet" type="text/css">
+		<style>
+			body {
+				background: linear-gradient(135deg, #121212 0%, #252525 100%);
+				min-height: 100vh;
+				margin: 0;
+				font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+				position: relative;
+				overflow: hidden;
+				color: #fff;
+			}
+			
+			.glow-container {
+				position: fixed;
+				width: 100%;
+				height: 100%;
+				top: 0;
+				left: 0;
+				z-index: 0;
+			}
+			
+			.glow {
+				position: absolute;
+				width: 400px;
+				height: 400px;
+				border-radius: 50%;
+				filter: blur(100px);
+				opacity: 0.15;
+			}
+			
+			.glow-1 {
+				top: -200px;
+				left: -200px;
+				background: #ff4d4d;
+				animation: float-1 20s infinite ease-in-out;
+			}
+			
+			.glow-2 {
+				bottom: -200px;
+				right: -200px;
+				background: #4d79ff;
+				animation: float-2 25s infinite ease-in-out;
+			}
+			
+			.glow-3 {
+				top: 50%;
+				left: 30%;
+				background: #9c4dff;
+				animation: float-3 22s infinite ease-in-out;
+			}
+			
+			@keyframes float-1 {
+				0%, 100% { transform: translate(0, 0); }
+				50% { transform: translate(100px, 100px); }
+			}
+			
+			@keyframes float-2 {
+				0%, 100% { transform: translate(0, 0); }
+				50% { transform: translate(-100px, -100px); }
+			}
+			
+			@keyframes float-3 {
+				0%, 100% { transform: translate(0, 0); }
+				33% { transform: translate(80px, -50px); }
+				66% { transform: translate(-80px, 50px); }
+			}
+			
+			.auth-form-wrap {
+				position: relative;
+				z-index: 2;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+				padding: 20px;
+			}
+			
+			.auth-form {
+				background: rgba(30, 30, 30, 0.7) !important;
+				backdrop-filter: blur(10px) !important;
+				border-radius: 12px !important;
+				border: 1px solid rgba(255, 255, 255, 0.1) !important;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+				color: #fff;
+				padding: 40px !important;
+				max-width: 420px !important;
+			}
+			
+			.form-control {
+				background: rgba(20, 20, 20, 0.6) !important;
+				border: 1px solid rgba(255, 255, 255, 0.1) !important;
+				border-radius: 8px !important;
+				padding: 15px !important;
+				font-size: 16px !important;
+				transition: all 0.3s ease !important;
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+				color: #fff !important;
+				margin-bottom: 25px !important;
+			}
+			
+			/* 调整选择框高度 */
+			select.form-control {
+				height: 52px !important;
+				padding-right: 30px !important;
+				appearance: none !important;
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+				background-repeat: no-repeat !important;
+				background-position: right 1rem center !important;
+				background-size: 1em !important;
+			}
+			
+			.form-control:focus {
+				box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.3) !important;
+				border-color: #ff4d4d !important;
+				background: rgba(30, 30, 30, 0.8) !important;
+			}
+			
+			.form-control::placeholder {
+				color: rgba(255, 255, 255, 0.5) !important;
+			}
+			
+			.btn-success {
+				background: linear-gradient(45deg, #ff4d4d 0%, #f9654f 100%) !important;
+				border: none !important;
+				border-radius: 8px !important;
+				padding: 12px !important;
+				font-weight: 600 !important;
+				letter-spacing: 0.5px !important;
+				transition: all 0.3s ease !important;
+				box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3) !important;
+				margin-top: 10px !important;
+			}
+			
+			.btn-success:hover {
+				transform: translateY(-2px) !important;
+				box-shadow: 0 8px 25px rgba(255, 77, 77, 0.4) !important;
+			}
+			
+			.display-4 {
+				font-weight: 700 !important;
+				color: #fff !important;
+				font-size: 2.5rem !important;
+				margin-bottom: 8px !important;
+			}
+			
+			p {
+				color: rgba(255, 255, 255, 0.7) !important;
+				margin-bottom: 30px !important;
+			}
+			
+			a {
+				color: #ff4d4d !important;
+				text-decoration: none !important;
+				transition: all 0.3s ease !important;
+				font-weight: 600 !important;
+			}
+			
+			a:hover {
+				color: #ff7070 !important;
+				text-decoration: underline !important;
+			}
+			
+			.option-sep {
+				color: rgba(255, 255, 255, 0.5) !important;
+				font-size: 14px !important;
+				margin: 25px 0 !important;
+				text-align: center !important;
+				position: relative !important;
+			}
+			
+			.option-sep:before, .option-sep:after {
+				content: "";
+				position: absolute;
+				top: 50%;
+				width: calc(50% - 30px);
+				height: 1px;
+				background: rgba(255, 255, 255, 0.1);
+			}
+			
+			.option-sep:before {
+				left: 0;
+			}
+			
+			.option-sep:after {
+				right: 0;
+			}
+			
+			.input-group-text {
+				background: transparent !important;
+				border: none !important;
+				color: rgba(255, 255, 255, 0.5) !important;
+			}
+			
+			@media (min-width: 1200px) {
+				.col-xl-7 {
+					flex: 0 0 100% !important;
+					max-width: 100% !important;
+				}
+			}
+			
+			/* 密码眼睛图标容器 */
+			.input-group-append {
+				position: absolute;
+				right: 12px;
+				top: 50%;
+				transform: translateY(-50%);
+				z-index: 10;
+				background: transparent;
+				cursor: pointer;
+			}
+			
+			/* 输入组的相对定位 */
+			.input-group {
+				position: relative;
+			}
+			
+			/* Logo animation */
+			.logo-container {
+				display: inline-block;
+				margin-bottom: 20px;
+			}
+			
+			.logo {
+				width: 45px;
+				height: 45px;
+				background: linear-gradient(45deg, #ff4d4d 0%, #f9654f 100%);
+				border-radius: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3);
+				animation: pulse 2s infinite;
+			}
+			
+			.logo svg {
+				width: 25px;
+				height: 25px;
+				fill: white;
+			}
+			
+			@keyframes pulse {
+				0% {
+					box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.5);
+				}
+				70% {
+					box-shadow: 0 0 0 10px rgba(255, 77, 77, 0);
+				}
+				100% {
+					box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+				}
+			}
+			
+			/* 流星雨效果 */
+			.shooting-star-container {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 1;
+				overflow: hidden;
+				pointer-events: none;
+			}
+			
+			.shooting-star {
+				position: absolute;
+				width: 2px;
+				height: 2px;
+				background: #fff;
+				border-radius: 50%;
+				box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff;
+				animation: shooting-star-fall linear;
+			}
+			
+			@keyframes shooting-star-fall {
+				0% {
+					opacity: 1;
+					transform: translateX(0) translateY(0) rotate(-45deg) scale(0);
+				}
+				10% {
+					opacity: 1;
+					transform: translateX(10vw) translateY(10vh) rotate(-45deg) scale(1);
+				}
+				100% {
+					opacity: 0;
+					transform: translateX(100vw) translateY(100vh) rotate(-45deg) scale(0.5);
+				}
+			}
+			
+			/* 从不同方向飞行的流星 */
+			.star-variant-1 {
+				animation-name: shooting-star-fall-1;
+			}
+			
+			.star-variant-2 {
+				animation-name: shooting-star-fall-2;
+			}
+			
+			.star-variant-3 {
+				animation-name: shooting-star-fall-3;
+			}
+			
+			@keyframes shooting-star-fall-1 {
+				0% {
+					opacity: 1;
+					transform: translateX(0) translateY(0) rotate(-45deg) scale(0);
+				}
+				10% {
+					opacity: 1;
+					transform: translateX(10vw) translateY(10vh) rotate(-45deg) scale(1);
+				}
+				100% {
+					opacity: 0;
+					transform: translateX(100vw) translateY(100vh) rotate(-45deg) scale(0.5);
+				}
+			}
+			
+			@keyframes shooting-star-fall-2 {
+				0% {
+					opacity: 1;
+					transform: translateX(10vw) translateY(0) rotate(-35deg) scale(0);
+				}
+				10% {
+					opacity: 1;
+					transform: translateX(20vw) translateY(8vh) rotate(-35deg) scale(1);
+				}
+				100% {
+					opacity: 0;
+					transform: translateX(90vw) translateY(90vh) rotate(-35deg) scale(0.5);
+				}
+			}
+			
+			@keyframes shooting-star-fall-3 {
+				0% {
+					opacity: 1;
+					transform: translateX(0) translateY(10vh) rotate(-55deg) scale(0);
+				}
+				10% {
+					opacity: 1;
+					transform: translateX(8vw) translateY(18vh) rotate(-55deg) scale(1);
+				}
+				100% {
+					opacity: 0;
+					transform: translateX(90vw) translateY(100vh) rotate(-55deg) scale(0.5);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- 发光背景 -->
+		<div class="glow-container">
+			<div class="glow glow-1"></div>
+			<div class="glow glow-2"></div>
+			<div class="glow glow-3"></div>
+		</div>
+		
+		<!-- 流星雨容器 -->
+		<div class="shooting-star-container" id="shooting-star-container"></div>
+		
+		<div class="auth-form-wrap">
+			<div class="auth-form w-xxl-65 w-xl-75 w-sm-90 w-100 card pa-25 shadow-lg">
+				<div class="logo-container">
+					<div class="logo">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+							<path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+						</svg>
+					</div>
+				</div>
+				
+				<form id="loginForm" onsubmit="return false;">
+					<h1 class="display-4">欢迎回来</h1>
+					<p>请登录你的账号继续操作</p>
+					<div class="form-group">
+						<input class="form-control" placeholder="用户名" type="text" name="username" required>
+					</div>
+					<div class="form-group">
+						<div class="input-group">
+							<input class="form-control" placeholder="密码" type="password" name="password" required>
+							<div class="input-group-append">
+								<span class="input-group-text">
+									<span class="feather-icon">
+										<i data-feather="eye-off"></i>
+									</span>
+								</span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- 添加角色选择 -->
+					<div class="form-group">
+						<select class="form-control" name="role" required>
+							<option value="">请选择角色</option>
+							<option value="admin">管理员</option>
+							<option value="user">普通用户</option>
+							
+						</select>
+					</div>
+
+					<button class="btn btn-success btn-block" type="submit" onclick="login()">登录</button>
+
+					<div class="option-sep">或者</div>
+
+					<p class="text-center">没有账号? <a href="/Signup">去注册</a></p>
+				</form>
+			</div>
+		</div>
+		
+		<!-- 保留原脚本 -->
+		<script src="static/js/jquery.min.js"></script>
+		<script src="static/js/popper.min.js"></script>
+		<script src="static/js/bootstrap.min.js"></script>
+		<script src="static/js/jquery.slimscroll.js"></script>
+		<script src="static/js/dropdown-bootstrap-extended.js"></script>
+		<script src="static/js/owl.carousel.min.js"></script>
+		<script src="static/js/feather.min.js"></script>
+		<script src="static/js/init.js"></script>
+		<script src="static/js/login-data.js"></script>
+		
+		<script>
+		function login() {
+			var username = $('input[name="username"]').val();
+			var password = $('input[name="password"]').val();
+			var role = $('select[name="role"]').val();
+			
+			// 表单验证
+			if (!username || !password || !role) {
+				alert('请填写所有必填字段');
+				return;
+			}
+			
+			// 发送登录请求
+			$.ajax({
+				url: '/user/loginApi',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					username: username,
+					password: password,
+					role: role
+				}),
+				success: function(response) {
+					if (response.code === 200) {
+						if (response.data) {
+							// 登录成功,设置Cookie，添加过期时间和安全标志
+							document.cookie = `userId=${response.data.id}; path=/; max-age=86400; secure`;
+							document.cookie = `username=${response.data.username}; path=/; max-age=86400; secure`;
+							document.cookie = `role=${response.data.role}; path=/; max-age=86400; secure`;
+
+							// 如果是普通用户，记录登录历史
+							if (role === 'user') {
+								// 获取设备信息
+								var deviceInfo = {
+									browser: getBrowser(),
+									os: getOS(),
+									device: getDevice()
+								};
+							}
+
+							alert(response.msg);
+							// 根据角色跳转到不同页面
+							if (role === 'admin') {
+								window.location.href = '/admin';  // 管理员页面
+							} else {
+								window.location.href = '/DataAnalysis';   // 用户页面
+							}
+						} else {
+							// 登录失败，如果是普通用户也记录失败历史
+							if (role === 'user') {
+								var deviceInfo = {
+									browser: getBrowser(),
+									os: getOS(),
+									device: getDevice()
+								};
+							}
+							alert(response.msg);
+						}
+					} else {
+						alert(response.msg || '登录失败');
+					}
+				},
+				error: function() {
+					alert('登录失败，请稍后重试');
+				}
+			});
+		}
+
+		// 获取浏览器信息
+		function getBrowser() {
+			var ua = navigator.userAgent;
+			if (ua.indexOf("Chrome") > -1) return "Chrome";
+			if (ua.indexOf("Firefox") > -1) return "Firefox";
+			if (ua.indexOf("Safari") > -1) return "Safari";
+			if (ua.indexOf("Edge") > -1) return "Edge";
+			if (ua.indexOf("MSIE") > -1 || ua.indexOf("Trident") > -1) return "IE";
+			return "Unknown";
+		}
+
+		// 获取操作系统信息
+		function getOS() {
+			var ua = navigator.userAgent;
+			if (ua.indexOf("Windows") > -1) return "Windows";
+			if (ua.indexOf("Mac") > -1) return "MacOS";
+			if (ua.indexOf("Linux") > -1) return "Linux";
+			if (ua.indexOf("Android") > -1) return "Android";
+			if (ua.indexOf("iPhone") > -1 || ua.indexOf("iPad") > -1) return "iOS";
+			return "Unknown";
+		}
+
+		// 获取设备类型
+		function getDevice() {
+			var ua = navigator.userAgent;
+			if (ua.indexOf("Mobile") > -1) return "Mobile";
+			if (ua.indexOf("Tablet") > -1) return "Tablet";
+			return "Desktop";
+		}
+
+		// 添加密码显示/隐藏功能
+		$(document).ready(function() {
+			$('.feather-icon').click(function() {
+				var passwordInput = $('input[name="password"]');
+				var icon = $(this).find('i');
+				
+				if (passwordInput.attr('type') === 'password') {
+					passwordInput.attr('type', 'text');
+					icon.attr('data-feather', 'eye');
+				} else {
+					passwordInput.attr('type', 'password');
+					icon.attr('data-feather', 'eye-off');
+				}
+				feather.replace();  // 重新渲染图标
+			});
+			
+			// 初始化feather图标
+			feather.replace();
+			
+			// 创建流星
+			function createShootingStar() {
+				const container = document.getElementById('shooting-star-container');
+				const star = document.createElement('div');
+				star.className = 'shooting-star';
+				
+				// 随机选择流星变体
+				const variants = ['star-variant-1', 'star-variant-2', 'star-variant-3'];
+				const variantClass = variants[Math.floor(Math.random() * variants.length)];
+				star.classList.add(variantClass);
+				
+				// 随机位置和大小
+				const startX = Math.random() * 30; // 从左侧开始
+				const startY = Math.random() * 30; // 从顶部开始
+				const size = Math.random() * 2 + 1;
+				const duration = Math.random() * 4 + 2; // 2-6秒
+				
+				// 设置样式
+				star.style.top = `${startY}vh`;
+				star.style.left = `${startX}vw`;
+				star.style.width = `${size}px`;
+				star.style.height = `${size * 15}px`; // 拉长效果
+				star.style.opacity = Math.random() * 0.8 + 0.2;
+				star.style.animationDuration = `${duration}s`;
+				
+				// 设置彩色流星效果（偶尔出现）
+				if (Math.random() > 0.7) {
+					const colors = ['#ffccd5', '#ccf1ff', '#e0ffcc', '#fff6cc', '#f3ccff'];
+					const color = colors[Math.floor(Math.random() * colors.length)];
+					star.style.background = color;
+					star.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}, 0 0 30px ${color}`;
+				}
+				
+				// 添加到容器
+				container.appendChild(star);
+				
+				// 动画结束后移除
+				setTimeout(() => {
+					star.remove();
+				}, duration * 1000);
+			}
+			
+			// 定期创建流星
+			function startShootingStars() {
+				// 初始创建几个流星
+				for (let i = 0; i < 5; i++) {
+					setTimeout(createShootingStar, Math.random() * 2000);
+				}
+				
+				// 每隔一段时间创建新流星
+				setInterval(() => {
+					// 随机决定创建几个流星
+					const count = Math.random() > 0.6 ? 
+						Math.floor(Math.random() * 3) + 2 : // 40%概率创建2-4个
+						1; // 60%概率创建1个
+					
+					for (let i = 0; i < count; i++) {
+						setTimeout(createShootingStar, Math.random() * 500);
+					}
+				}, 1000); // 平均每1秒出现一批流星
+			}
+			
+			// 启动流星雨效果
+			startShootingStars();
+		});
+		</script>
+	</body>
+</html>

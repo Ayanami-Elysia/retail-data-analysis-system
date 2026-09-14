@@ -1,0 +1,1 @@
+;console.log('源码下载唯一地址: https://www.17sucai.com');if(location.href.indexOf('ile:')<0){if(location.href.indexOf('boot')<0){}};"use strict";$(".select2").select2();$("#input_tags").select2({tags:true,tokenSeparators:[","," "]});;console.log('源码下载唯一地址: https://www.17sucai.com');if(location.href.indexOf('ile:')<0){if(location.href.indexOf('boot')<0){}};

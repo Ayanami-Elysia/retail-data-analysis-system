@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>{% block title %}{% endblock %}</title>
+        <meta name="description" content="A responsive bootstrap 4 admin dashboard template by hencework">
+        <link href="../static/css/style.css" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --primary-color: #ff4d4d;
+                --secondary-color: #f9654f;
+                --dark-color: #121212;
+                --dark-secondary: #252525;
+                --light-color: #f5f7fa;
+                --success-color: #4dff77;
+                --warning-color: #ffa64d;
+                --danger-color: #ff4d4d;
+                --text-color: #ffffff;
+                --text-muted: rgba(255, 255, 255, 0.6);
+                --border-radius: 12px;
+                --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                --transition: all 0.3s ease;
+            }
+            
+            body {
+                font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                background: linear-gradient(135deg, var(--dark-color) 0%, var(--dark-secondary) 100%);
+                color: var(--text-color);
+                overflow-x: hidden;
+                min-height: 100vh;
+            }
+            
+            /* 导航栏样式 */
+            .hk-navbar {
+                background: rgba(30, 30, 30, 0.7) !important;
+                backdrop-filter: blur(10px) !important;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+                height: 70px !important;
+                padding: 0 25px !important;
+                border: none !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            .hk-navbar .navbar-brand {
+                color: white !important;
+                font-weight: 700 !important;
+                font-size: 1.5rem !important;
+                letter-spacing: 0.5px !important;
+                position: relative !important;
+            }
+            
+            .hk-navbar .navbar-brand:after {
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 30px;
+                height: 3px;
+                background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+                border-radius: 3px;
+            }
+            
+            .hk-navbar .nav-link {
+                color: rgba(255, 255, 255, 0.85) !important;
+                padding: 0.5rem 1rem !important;
+                transition: var(--transition) !important;
+                position: relative !important;
+            }
+            
+            .hk-navbar .nav-link:hover {
+                color: white !important;
+                transform: translateY(-2px) !important;
+            }
+            
+            .hk-navbar .nav-link-hover:after {
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                width: 0;
+                height: 2px;
+                background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+                transition: var(--transition);
+                transform: translateX(-50%);
+            }
+            
+            .hk-navbar .nav-link-hover:hover:after {
+                width: 20px;
+            }
+            
+            .hk-navbar .feather-icon {
+                stroke-width: 2.5px !important;
+                color: white !important;
+            }
+            
+            /* 左侧导航样式 */
+            .hk-nav {
+                background: rgba(30, 30, 30, 0.7) !important;
+                backdrop-filter: blur(10px) !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+                width: 260px !important;
+                transition: var(--transition) !important;
+                transform-origin: top left;
+                position: fixed;
+                height: 100%;
+                z-index: 1030;
+                box-shadow: 3px 0 20px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            .hk-nav.collapsed {
+                width: 70px !important;
+                overflow: hidden;
+            }
+            
+            .hk-nav.collapsed .nav-link-text,
+            .hk-nav.collapsed .badge,
+            .hk-nav.collapsed .collapse {
+                display: none !important;
+            }
+            
+            .hk-nav.collapsed .nav-item {
+                text-align: center !important;
+            }
+            
+            .hk-nav.collapsed .nav-link i {
+                margin-right: 0 !important;
+                font-size: 1.5rem !important;
+            }
+            
+            .hk-nav.collapsed + .hk-pg-wrapper {
+                margin-left: 70px !important;
+            }
+            
+            /* 菜单项高亮效果 */
+            .hk-nav .nav-item.active > .nav-link {
+                background: linear-gradient(135deg, rgba(255, 77, 77, 0.2), rgba(249, 101, 79, 0.2)) !important;
+                color: var(--primary-color) !important;
+                font-weight: 600 !important;
+            }
+            
+            /* 菜单项点击波纹效果 */
+            .nav-link-ripple {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .ripple {
+                position: absolute;
+                border-radius: 50%;
+                background-color: rgba(255, 77, 77, 0.2);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                pointer-events: none;
+            }
+            
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            
+            .hk-nav-toggle-animation {
+                animation: collapseNav 0.3s ease forwards;
+            }
+            
+            @keyframes collapseNav {
+                from {
+                    width: 260px;
+                }
+                to {
+                    width: 70px;
+                }
+            }
+            
+            @keyframes expandNav {
+                from {
+                    width: 70px;
+                }
+                to {
+                    width: 260px;
+                }
+            }
+            
+            .hk-nav .nav-item {
+                margin: 5px 15px !important;
+            }
+            
+            .hk-nav .nav-link {
+                color: var(--text-color) !important;
+                border-radius: var(--border-radius) !important;
+                padding: 12px 15px !important;
+                transition: var(--transition) !important;
+                font-weight: 500 !important;
+            }
+            
+            .hk-nav .nav-link:hover, 
+            .hk-nav .nav-link.active {
+                background: linear-gradient(135deg, rgba(255, 77, 77, 0.1), rgba(249, 101, 79, 0.1)) !important;
+                color: var(--primary-color) !important;
+            }
+            
+            .hk-nav .nav-link i {
+                margin-right: 10px !important;
+                font-size: 1.2rem !important;
+                vertical-align: middle !important;
+            }
+            
+            .hk-nav .nav-link-text {
+                font-size: 0.95rem !important;
+            }
+            
+            .hk-nav .badge {
+                padding: 0.35em 0.65em !important;
+                font-size: 0.75em !important;
+                font-weight: 500 !important;
+            }
+            
+            .hk-nav .badge-success {
+                background-color: var(--success-color) !important;
+            }
+            
+            /* 内容区域样式 */
+            .hk-wrapper {
+                background: linear-gradient(135deg, var(--dark-color) 0%, var(--dark-secondary) 100%) !important;
+            }
+            
+            .hk-pg-wrapper {
+                padding: 85px 20px 20px !important;
+                min-height: 100vh !important;
+                transition: var(--transition) !important;
+                margin-left: 260px;
+                background: linear-gradient(135deg, var(--dark-color) 0%, var(--dark-secondary) 100%) !important;
+                color: var(--text-color) !important;
+            }
+            
+            /* 卡片样式 */
+            .card {
+                background: rgba(30, 30, 30, 0.7) !important;
+                backdrop-filter: blur(10px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: var(--border-radius) !important;
+                box-shadow: var(--box-shadow) !important;
+                transition: var(--transition) !important;
+                overflow: hidden !important;
+                color: var(--text-color) !important;
+            }
+            
+            .card:hover {
+                transform: translateY(-5px) !important;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4) !important;
+            }
+            
+            .card-header {
+                background: rgba(25, 25, 25, 0.5) !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+                padding: 20px !important;
+                color: white !important;
+                font-weight: 600 !important;
+            }
+            
+            .card-body {
+                padding: 25px !important;
+            }
+            
+            /* 按钮样式 */
+            .btn {
+                border-radius: var(--border-radius) !important;
+                padding: 0.5rem 1.5rem !important;
+                font-weight: 600 !important;
+                transition: var(--transition) !important;
+                box-shadow: none !important;
+            }
+            
+            .btn:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)) !important;
+                border: none !important;
+                box-shadow: 0 5px 15px rgba(255, 77, 77, 0.3) !important;
+            }
+            
+            .btn-primary:hover {
+                box-shadow: 0 8px 25px rgba(255, 77, 77, 0.4) !important;
+            }
+            
+            /* 表格样式 */
+            .table {
+                border-collapse: separate !important;
+                border-spacing: 0 5px !important;
+                color: var(--text-color) !important;
+            }
+            
+            .table thead th {
+                border-bottom: none !important;
+                background: rgba(20, 20, 20, 0.4) !important;
+                color: var(--text-muted) !important;
+                font-weight: 600 !important;
+                padding: 15px !important;
+            }
+            
+            .table tbody tr {
+                background: rgba(30, 30, 30, 0.5) !important;
+                box-shadow: var(--box-shadow) !important;
+                border-radius: var(--border-radius) !important;
+                transition: var(--transition) !important;
+            }
+            
+            .table tbody tr:hover {
+                transform: scale(1.01) !important;
+                background: rgba(40, 40, 40, 0.6) !important;
+            }
+            
+            .table td {
+                border-top: none !important;
+                padding: 15px !important;
+                vertical-align: middle !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            /* 表单样式 */
+            .form-control {
+                background: rgba(20, 20, 20, 0.6) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: var(--border-radius) !important;
+                padding: 0.75rem 1rem !important;
+                transition: var(--transition) !important;
+                color: var(--text-color) !important;
+            }
+            
+            .form-control:focus {
+                border-color: var(--primary-color) !important;
+                box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.3) !important;
+                background: rgba(30, 30, 30, 0.8) !important;
+            }
+            
+            .form-control::placeholder {
+                color: rgba(255, 255, 255, 0.5) !important;
+            }
+            
+            /* 下拉菜单样式 */
+            .dropdown-menu {
+                background: rgba(30, 30, 30, 0.9) !important;
+                backdrop-filter: blur(10px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: var(--border-radius) !important;
+                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3) !important;
+                padding: 0.5rem !important;
+                animation: fadeIn 0.3s ease !important;
+                color: var(--text-color) !important;
+            }
+            
+            /* 下拉菜单显示和隐藏动画 */
+            .dropdown-menu.show {
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .dropdown-menu.hiding {
+                animation: fadeOut 0.2s ease forwards;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateY(0); }
+                to { opacity: 0; transform: translateY(10px); }
+            }
+            
+            .dropdown-item {
+                border-radius: var(--border-radius) !important;
+                padding: 0.5rem 1rem !important;
+                transition: var(--transition) !important;
+                color: var(--text-color) !important;
+            }
+            
+            .dropdown-item:hover {
+                background: rgba(255, 77, 77, 0.1) !important;
+                color: var(--primary-color) !important;
+            }
+            
+            /* 用户头像样式 */
+            .avatar {
+                position: relative !important;
+                display: inline-block !important;
+                transition: var(--transition) !important;
+            }
+            
+            .avatar-img {
+                width: 40px !important;
+                height: 40px !important;
+                object-fit: cover !important;
+                border: 2px solid rgba(255, 77, 77, 0.3) !important;
+                transition: var(--transition) !important;
+                border-radius: 50% !important;
+            }
+            
+            .dropdown-authentication:hover .avatar-img {
+                transform: scale(1.1) !important;
+                border-color: var(--primary-color) !important;
+            }
+            
+            .dropdown-authentication {
+                cursor: pointer;
+            }
+            
+            .dropdown-authentication .media {
+                transition: var(--transition);
+            }
+            
+            .dropdown-authentication.show .media {
+                transform: translateY(-2px);
+            }
+            
+            .badge-indicator {
+                position: absolute !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                width: 10px !important;
+                height: 10px !important;
+                border: 2px solid rgba(30, 30, 30, 0.7) !important;
+                background: var(--success-color) !important;
+                border-radius: 50% !important;
+            }
+            
+            /* 响应式调整 */
+            @media (max-width: 1199.98px) {
+                .hk-nav {
+                    margin-left: -260px !important;
+                }
+                
+                .hk-nav.show {
+                    margin-left: 0 !important;
+                }
+                
+                .hk-pg-wrapper {
+                    padding-left: 20px !important;
+                }
+            }
+            
+            /* 动画效果 */
+            .nav-item, .card, .btn {
+                transition: var(--transition) !important;
+            }
+            
+            /* 滚动条样式 */
+            ::-webkit-scrollbar {
+                width: 6px !important;
+                height: 6px !important;
+            }
+            
+            ::-webkit-scrollbar-track {
+                background: rgba(20, 20, 20, 0.5) !important;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255, 77, 77, 0.3) !important;
+                border-radius: 10px !important;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 77, 77, 0.5) !important;
+            }
+            
+            /* 页面过渡动画 */
+            .hk-wrapper {
+                animation: fadeInUp 0.5s ease-out;
+            }
+            
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            /* 子页面收缩动画 */
+            .content-slide-left {
+                animation: slideLeft 0.3s ease forwards;
+            }
+            
+            .content-slide-right {
+                animation: slideRight 0.3s ease forwards;
+            }
+            
+            @keyframes slideLeft {
+                from {
+                    margin-left: 260px;
+                }
+                to {
+                    margin-left: 70px;
+                }
+            }
+            
+            @keyframes slideRight {
+                from {
+                    margin-left: 70px;
+                }
+                to {
+                    margin-left: 260px;
+                }
+            }
+            
+            /* 发光效果 */
+            .glow-effect {
+                position: relative;
+            }
+            
+            .glow-effect:after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                border-radius: inherit;
+                box-shadow: 0 0 15px 2px rgba(255, 77, 77, 0.3);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: -1;
+                pointer-events: none;
+            }
+            
+            .glow-effect:hover:after {
+                opacity: 1;
+            }
+            
+            /* 用户名样式 */
+            .media-body span {
+                color: white !important;
+                font-weight: 600 !important;
+            }
+            
+            /* 图标颜色 */
+            .ion {
+                color: var(--text-color) !important;
+            }
+            
+            /* 下拉菜单图标 */
+            .dropdown-icon {
+                color: var(--primary-color) !important;
+                margin-right: 10px !important;
+            }
+        </style>
+        {% block css %}{% endblock %}
+    </head>
+    <body>
+        <div class="hk-wrapper hk-vertical-nav">
+            <!-- 顶部导航栏 -->
+            <nav class="navbar navbar-expand-xl navbar-dark fixed-top hk-navbar">
+                <a class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" href="javascript:void(0);">
+                    <span class="feather-icon">
+                        <i data-feather="more-vertical"></i>
+                    </span>
+                </a>
+                <a id="navbar_toggle_btn" class="navbar-toggle-btn nav-link-hover" href="javascript:void(0);">
+                    <span class="feather-icon">
+                        <i data-feather="menu"></i>
+                    </span>
+                </a>
+                <a class="navbar-brand" href="">
+                    电商数据分析平台
+                </a>
+                <ul class="navbar-nav hk-navbar-content order-xl-2">
+                   
+                    
+                    <li class="nav-item dropdown dropdown-authentication">
+                        <a class="nav-link dropdown-toggle no-caret" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="media">
+                                <div class="media-body">
+                                    <span>{{ username }}<i class="zmdi zmdi-chevron-down"></i></span>
+                                </div>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" data-dropdown-in="flipInX" data-dropdown-out="flipOutX">
+
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="/logout">
+                                <i class="dropdown-icon zmdi zmdi-power"></i>
+                                <span>退出登录</span>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+
+
+            <!-- 左侧菜单 -->
+            <nav class="hk-nav hk-nav-light">
+                <a href="javascript:void(0);" id="hk_nav_close" class="hk-nav-close">
+                    <span class="feather-icon">
+                        <i data-feather="x"></i>
+                    </span>
+                </a>
+                <div class="nicescroll-bar">
+                    <div class="navbar-nav-wrap" id="adminDiv">
+                        <ul class="navbar-nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link link-with-badge" href="javascript:void(0);" data-toggle="collapse" data-target="#app_drp">
+                                    <i class="ion ion-md-people"></i>
+                                    <span class="nav-link-text">用户管理</span>
+                                    <span class="badge badge-success badge-pill"></span>
+                                </a>
+                                <ul id="app_drp" class="nav flex-column collapse collapse-level-1">
+                                    <li class="nav-item">
+                                        <ul class="nav flex-column">
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/User">用户管理</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/admin">管理员管理</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link-with-badge" href="javascript:void(0);" data-toggle="collapse" data-target="#data_drp">
+                                    <i class="ion ion-md-analytics"></i>
+                                    <span class="nav-link-text">数据管理</span>
+                                    <span class="badge badge-success badge-pill"></span>
+                                </a>
+                                <ul id="data_drp" class="nav flex-column collapse collapse-level-1">
+                                    <li class="nav-item">
+                                        <ul class="nav flex-column">
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/DataAnalysis">数据分析</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/SalesPrediction">销售预测</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/AdvancedAnalysis">高级可视化</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/Screen">数据大屏</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/BehaviorAnalysis">用户行为偏好</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    <div class="navbar-nav-wrap" id="userDiv">
+                        <ul class="navbar-nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link link-with-badge" href="javascript:void(0);" data-toggle="collapse" data-target="#user_data_drp">
+                                    <i class="ion ion-md-analytics"></i>
+                                    <span class="nav-link-text">数据管理</span>
+                                    <span class="badge badge-success badge-pill"></span>
+                                </a>
+                                <ul id="user_data_drp" class="nav flex-column collapse collapse-level-1">
+                                    <li class="nav-item">
+                                        <ul class="nav flex-column">
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/DataAnalysis">数据分析</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/SalesPrediction">销售预测</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/AdvancedAnalysis">高级可视化</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/Screen">数据大屏</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="/BehaviorAnalysis">用户行为偏好</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div id="hk_nav_backdrop" class="hk-nav-backdrop"></div>
+
+            <!-- 主要内容区域 -->
+            <div class="hk-pg-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+        <!-- 基础JS -->
+        <script src="static/js/jquery.min.js"></script>
+        <script src="static/js/popper.min.js"></script>
+        <script src="static/js/bootstrap.min.js"></script>
+        <script src="static/js/jquery.slimscroll.js"></script>
+        <script src="static/js/dropdown-bootstrap-extended.js"></script>
+        <script src="static/js/feather.min.js"></script>
+        <script src="static/js/init.js"></script>
+        <script>
+        // 获取Cookie函数
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        // 页面加载完成后执行
+        $(document).ready(function() {
+            // 获取用户角色
+            const role = getCookie('role');
+            const username = getCookie('username');
+
+            // 设置用户名显示
+            $('.media-body span').first().text(username);
+
+            // 根据角色显示/隐藏菜单
+            if(role === 'admin') {
+                // 管理员可以看到所有菜单
+                $('#adminDiv').show();
+                $('#userDiv').hide();
+            } else {
+                // 普通用户隐藏管理员菜单
+                $('#adminDiv').hide();
+                $('#userDiv').show();
+            }
+            
+            // 添加菜单项动画效果
+            $('.nav-item').each(function(index) {
+                $(this).css('animation', `fadeInRight ${0.3 + index * 0.1}s ease forwards`);
+                $(this).css('opacity', '0');
+            });
+            
+            // 添加卡片动画效果
+            $('.card').each(function(index) {
+                $(this).css('animation', `fadeInUp ${0.3 + index * 0.1}s ease forwards`);
+                $(this).css('opacity', '0');
+            });
+            
+            // 侧边栏收缩/展开功能
+            let sidebarCollapsed = false;
+            
+            // 添加波纹效果到所有导航链接
+            $('.nav-link').addClass('nav-link-ripple');
+            
+            // 波纹效果函数
+            $('.nav-link').on('click', function(e) {
+                const $this = $(this);
+                const offset = $this.offset();
+                const x = e.pageX - offset.left;
+                const y = e.pageY - offset.top;
+                
+                const $ripple = $('<span class="ripple"></span>');
+                $ripple.css({
+                    top: y + 'px',
+                    left: x + 'px'
+                });
+                
+                $this.append($ripple);
+                
+                setTimeout(function() {
+                    $ripple.remove();
+                }, 600);
+            });
+            
+            // 菜单项点击事件
+            $('.hk-nav .nav-item > .nav-link').on('click', function() {
+                const $this = $(this);
+                const $nav = $('.hk-nav');
+                const $wrapper = $('.hk-pg-wrapper');
+                
+                // 如果侧边栏是收缩状态，点击菜单项时展开
+                if (sidebarCollapsed) {
+                    // 展开侧边栏
+                    $nav.removeClass('collapsed');
+                    $nav.css('animation', 'expandNav 0.3s ease forwards');
+                    $wrapper.removeClass('content-slide-left').addClass('content-slide-right');
+                    
+                    // 延迟显示文字
+                    setTimeout(function() {
+                        $('.hk-nav .nav-link-text, .hk-nav .badge').fadeIn(300);
+                    }, 150);
+                    
+                    sidebarCollapsed = false;
+                    
+                    // 触发窗口调整事件，使子页面内容适应新布局
+                    setTimeout(function() {
+                        $(window).trigger('resize');
+                    }, 300);
+                }
+                
+                // 高亮当前选中的菜单项
+                $('.hk-nav .nav-item').removeClass('active');
+                $this.parent('.nav-item').addClass('active');
+            });
+            
+            // 顶部菜单按钮点击事件
+            $('#navbar_toggle_btn').click(function() {
+                const $nav = $('.hk-nav');
+                const $wrapper = $('.hk-pg-wrapper');
+                
+                if (sidebarCollapsed) {
+                    // 展开侧边栏
+                    $nav.removeClass('collapsed');
+                    $nav.css('animation', 'expandNav 0.3s ease forwards');
+                    $wrapper.removeClass('content-slide-left').addClass('content-slide-right');
+                    
+                    // 延迟显示文字
+                    setTimeout(function() {
+                        $('.hk-nav .nav-link-text, .hk-nav .badge').fadeIn(300);
+                    }, 150);
+                } else {
+                    // 收缩侧边栏
+                    $('.hk-nav .nav-link-text, .hk-nav .badge').fadeOut(100);
+                    
+                    setTimeout(function() {
+                        $nav.addClass('collapsed');
+                        $nav.css('animation', 'collapseNav 0.3s ease forwards');
+                        $wrapper.removeClass('content-slide-right').addClass('content-slide-left');
+                    }, 100);
+                }
+                
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                // 触发窗口调整事件，使子页面内容适应新布局
+                setTimeout(function() {
+                    $(window).trigger('resize');
+                }, 300);
+            });
+            
+            // 保存侧边栏状态到本地存储
+            function saveSidebarState() {
+                localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+            }
+            
+            // 从本地存储恢复侧边栏状态
+            function restoreSidebarState() {
+                const savedState = localStorage.getItem('sidebarCollapsed');
+                if (savedState === 'true' && !sidebarCollapsed) {
+                    // 如果保存的状态是收缩，但当前是展开，则收缩
+                    $('#navbar_toggle_btn').click();
+                }
+            }
+            
+            // 页面离开前保存状态
+            $(window).on('beforeunload', saveSidebarState);
+            
+            // 页面加载后恢复状态
+            restoreSidebarState();
+
+            // 用户下拉菜单控制
+            const $dropdownToggle = $('.dropdown-authentication .dropdown-toggle');
+            const $dropdownMenu = $('.dropdown-authentication .dropdown-menu');
+            let isDropdownOpen = false;
+            
+            // 点击用户菜单按钮
+            $dropdownToggle.on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (isDropdownOpen) {
+                    // 如果已经打开，则关闭
+                    closeDropdown();
+                } else {
+                    // 如果关闭，则打开
+                    openDropdown();
+                }
+            });
+            
+            // 点击下拉菜单内部不关闭
+            $dropdownMenu.on('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // 点击页面其他区域关闭下拉菜单
+            $(document).on('click', function() {
+                if (isDropdownOpen) {
+                    closeDropdown();
+                }
+            });
+            
+            // 打开下拉菜单
+            function openDropdown() {
+                $dropdownMenu.removeClass('hiding').addClass('show');
+                $('.dropdown-authentication').addClass('show');
+                isDropdownOpen = true;
+            }
+            
+            // 关闭下拉菜单
+            function closeDropdown() {
+                $dropdownMenu.removeClass('show').addClass('hiding');
+                $('.dropdown-authentication').removeClass('show');
+                
+                // 动画结束后移除hiding类
+                setTimeout(function() {
+                    $dropdownMenu.removeClass('hiding');
+                }, 200);
+                
+                isDropdownOpen = false;
+            }
+            
+            // ESC键关闭下拉菜单
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && isDropdownOpen) {
+                    closeDropdown();
+                }
+            });
+        });
+        </script>
+        {% block js %}{% endblock %}
+    </body>
+</html>
